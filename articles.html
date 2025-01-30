@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
      <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
@@ -49,15 +50,26 @@
                         const randomClass = uiClasses[Math.floor(Math.random() * uiClasses.length)];
 
                         feedHtml += `
-                            <div style="display: flex; gap: 16px; margin:8px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
-                                <div style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; ${randomClass}">
-                                    <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">${post.category}</p>
-                                    <p style="font-weight:600; font-size:18px; margin:8px 0;">${post.title}</p>
-                                    <p style="font-size: 14px; margin: 8px 0;">${truncatedContent}</p>
-                                    <span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;" onclick="location.href='read.html?id=${doc.id}'">Read More</span>
-                                </div>
-                            </div>
-                        `;
+    <div onclick="location.href='read.html?id=${doc.id}'" style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; ${randomClass}; cursor: pointer;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center;">
+                <img src="profile.jpg" alt="Profile" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 8px;">
+                <span style="font-weight: 600;">Nikit Hamal</span>
+            </div>
+            <i class="fas fa-share-alt" onclick="event.stopPropagation(); sharePost('${doc.id}')" style="cursor: pointer;"></i>
+        </div>
+        <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">${post.category}</p>
+        <p style="font-weight:600; font-size:18px; margin:8px 0;">${post.title}</p>
+        <p style="font-size: 14px; margin: 8px 0;">${truncatedContent}</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #666; margin-top: 10px;">
+            <span><i class="far fa-clock" style="margin-right: 5px;"></i> ${formatTimeAgo(post.timestamp)}</span>
+            <span><i class="far fa-thumbs-up" style="margin-right: 5px;"></i> ${post.likes || 0}</span>
+            <span><i class="far fa-comment" style="margin-right: 5px;"></i> ${post.comments || 0}</span>
+            <i class="fas fa-ellipsis-h" style="cursor: pointer;"></i>
+        </div>
+    </div>
+`;
+
                     });
                     document.getElementById("blog-feed").innerHTML = feedHtml;
                 })
@@ -82,7 +94,10 @@
             if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
             return `${seconds} second${seconds > 1 ? 's' : ''}`;
         }
+
+
     </script>
+
 </head>
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; color: #333; scroll-behavior: smooth;">
 <header>
