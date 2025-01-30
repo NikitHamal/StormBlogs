@@ -5,27 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
-    <script>
-        // Initialize Firebase
+    <!-- Firebase SDK v9 (modular) -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
+
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
-        authDomain: "storm-blogs.firebaseapp.com",
-        projectId: "storm-blogs",
-        storageBucket: "storm-blogs.firebasestorage.app",
-        messagingSenderId: "158567556221",
-        appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
-
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
         };
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
+        // Function to fetch posts
         document.addEventListener("DOMContentLoaded", function() {
-            // Fetch posts from Firestore
-            db.collection("posts").get()
+            getDocs(collection(db, "posts"))
                 .then(snapshot => {
                     if (snapshot.empty) {
                         document.getElementById("blog-feed").innerHTML = "<p style='text-align:center;'>No articles available.</p>";
@@ -51,6 +52,7 @@
                 .catch(error => console.error("Error loading posts:", error));
         });
 
+        // Function to format time difference
         function formatTimeAgo(milliseconds) {
             const seconds = Math.floor(milliseconds / 1000);
             const minutes = Math.floor(seconds / 60);
