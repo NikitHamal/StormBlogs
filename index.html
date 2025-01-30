@@ -92,8 +92,8 @@
         </div>
 
 
- <script>
-    // Import necessary Firebase modules using the modular approach
+<!-- Add Firebase App script -->
+<script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
     import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
     import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
@@ -108,21 +108,20 @@
         appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
     };
 
-    // Initialize Firebase app
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Your existing logic here
     document.addEventListener("DOMContentLoaded", function() {
-        // Handle Firebase Auth on load
         const startReadingButton = document.getElementById('start-reading-btn');
         const menuImage = document.getElementById('menu-image');
         const userName = document.getElementById('user-name');
 
-        // Set up Google Login
         const provider = new GoogleAuthProvider();
 
-        // Check if the user is logged in and update button
+        // Firebase Auth state change listener
         auth.onAuthStateChanged(user => {
             if (user) {
                 if (user.email === 'iamnikithamal@gmail.com') {
@@ -141,7 +140,7 @@
             }
         });
 
-        // Function to handle login on menu image click
+        // Google login on menu image click
         menuImage.onclick = function() {
             signInWithPopup(auth, provider).then(result => {
                 const user = result.user;
@@ -152,6 +151,7 @@
         };
     });
 </script>
+
 
 </body>
 </html>
