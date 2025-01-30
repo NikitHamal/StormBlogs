@@ -6,7 +6,7 @@
     <title>StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <script type="module">
+     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
         import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
 
@@ -34,16 +34,28 @@
                     }
 
                     let feedHtml = "";
+                    const uiClasses = [
+                        "background: #8DE4AF; color: #111;",
+                        "background: #111; color: #fff;",
+                        "background: #D7AFFF; color: #111;",
+                        "background: #FCE77D; color: #111;"
+                    ];
+
                     snapshot.forEach(doc => {
                         const post = doc.data();
                         let timeDiff = Date.now() - post.timestamp;
                         let timeAgo = formatTimeAgo(timeDiff);
+                        let truncatedContent = post.content.length > 250 ? post.content.substring(0, 247) + '...' : post.content
+                        const randomClass = uiClasses[Math.floor(Math.random() * uiClasses.length)];
 
                         feedHtml += `
-                            <div style="border-bottom: 1px solid #ddd; padding: 16px 32px;">
-                                <h4 style="margin: 0 0 8px; color: #111; cursor: pointer;" onclick="location.href='read.html?id=${doc.id}'">${post.title}</h4>
-                                <p style="margin: 0; font-size: 14px; color: #777;">${post.category} • ${timeAgo} ago</p>
-                                <p style="margin: 4px 0 0; font-size: 13px; color: #555;">${post.views} views • ${post.likes} likes • ${post.comments} comments</p>
+                            <div style="display: flex; gap: 16px; margin:8px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
+                                <div style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; ${randomClass}">
+                                    <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">${post.category}</p>
+                                    <p style="font-weight:600; font-size:18px; margin:8px 0;">${post.title}</p>
+                                    <p style="font-size: 14px; margin: 8px 0;">${truncatedContent}</p>
+                                    <span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;" onclick="location.href='read.html?id=${doc.id}'">Read More</span>
+                                </div>
                             </div>
                         `;
                     });
@@ -83,6 +95,7 @@
 </header>
 
 <h3 style="margin:32px; text-align: center;">Articles</h3>
-<div id="blog-feed" style="max-width: 800px; margin: auto;"></div>
+<div id="blog-feed" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start; padding: 32px; margin: 0 auto; max-width: 100%;"></div>
+
 </body>
 </html>
