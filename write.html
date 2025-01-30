@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create a New Post - StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore.js"></script>
-    <script>
+
+    <!-- Firebase SDK for modular use -->
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore.js';
+
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
@@ -16,15 +20,14 @@
         storageBucket: "storm-blogs.firebasestorage.app",
         messagingSenderId: "158567556221",
         appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
-
         };
 
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
         document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("post-form").addEventListener("submit", function(event) {
+            document.getElementById("post-form").addEventListener("submit", async function(event) {
                 event.preventDefault();
 
                 // Gather form data
@@ -48,16 +51,14 @@
                 };
 
                 // Add the new post to Firestore
-                db.collection("posts").add(newPost)
-                    .then(() => {
-                        alert("Post published successfully!");
-                        // Optionally, redirect to the home page or clear the form
-                        window.location.href = "index.html"; // Redirect to homepage
-                    })
-                    .catch((error) => {
-                        console.error("Error adding post: ", error);
-                        alert("An error occurred while publishing the post.");
-                    });
+                try {
+                    await addDoc(collection(db, "posts"), newPost);
+                    alert("Post published successfully!");
+                    window.location.href = "index.html"; // Redirect to homepage
+                } catch (error) {
+                    console.error("Error adding post: ", error);
+                    alert("An error occurred while publishing the post.");
+                }
             });
         });
     </script>
