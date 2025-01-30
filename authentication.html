@@ -10,7 +10,7 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -27,25 +27,25 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Google Sign-In Function
+        // Google Sign-In Function with Auto-Redirect
         window.googleLogin = () => {
             signInWithPopup(auth, provider)
                 .then((result) => {
-                    const user = result.user;
-                    document.getElementById("user-info").innerHTML = `
-                        <img src="${user.photoURL}" alt="Profile Photo" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 12px;">
-                        <h3 style="margin: 4px 0;">${user.displayName}</h3>
-                        <p style="margin: 4px 0; color: #555;">${user.email}</p>
-                        <button onclick="logout()" style="margin-top: 12px; padding: 10px; font-size: 14px; background: red; color: white; border: none; border-radius: 6px; cursor: pointer;">Logout</button>
-                    `;
-                    document.getElementById("auth-container").style.display = "none";
-                    document.getElementById("user-info").style.display = "block";
+                    // Redirect to index.html after successful login
+                    window.location.href = "index.html";
                 })
                 .catch((error) => {
                     console.error(error.message);
                     alert("Authentication failed!");
                 });
         };
+
+        // Auto-redirect if already logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = "index.html";
+            }
+        });
 
         // Logout Function
         window.logout = () => {
