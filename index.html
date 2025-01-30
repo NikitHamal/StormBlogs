@@ -109,39 +109,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    function updateUserPopup(user) {
-    const userPopup = document.getElementById("user-popup");
-    if (user) {
-        let adminButtons = user.email === "iamnikithamal@gmail.com" 
-            ? `<button onclick="openAdminSection()">Admin Section</button>
-               <button onclick="openWriteSection()">Write</button>` 
-            : "";
-
-        userPopup.innerHTML = `
-            <div style="text-align: center; padding: 10px;">
-                <img src="${user.photoURL}" alt="Profile Picture" style="width: 50px; height: 50px; border-radius: 50%;">
-                <p style="margin: 5px 0;">${user.displayName}</p>
-                <p style="font-size: 12px; color: gray;">${user.email}</p>
-                ${adminButtons}
-                <button onclick="googleSignOut()">Sign Out</button>
-            </div>
-        `;
-    } else {
-        userPopup.innerHTML = `<p>You are not signed in.</p>`;
-    }
-}
-
-// Listen for auth state changes
-onAuthStateChanged(auth, (user) => {
-    updateUserPopup(user);
-});
-
-// Function to toggle user popup when menu icon is clicked
-document.getElementById("menu").addEventListener("click", () => {
-    const userPopup = document.getElementById("user-popup");
-    userPopup.style.display = userPopup.style.display === "block" ? "none" : "block";
-});
-    
+  
     // Function to fetch featured posts
     document.addEventListener("DOMContentLoaded", function() {
         const featuredPostsRef = collection(db, "posts");
