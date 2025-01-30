@@ -6,13 +6,13 @@
     <title>StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
    <!-- Add Firebase App script -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
 
 <!-- Add Firebase Auth script -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
 
 <!-- Add Firebase Firestore script -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 
 </head>
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; color: #333; scroll-behavior: smooth;">
@@ -25,12 +25,12 @@
             </div>
             <div style="display: flex; align-items: center;">
 
-                <button onclick="location.href='articles.html';" style="padding: 8px 16px; background-color: #111111; color: white; border: none; border-radius: 32px; cursor: pointer; font-family: 'Poppins', serif; font-size: 13px; font-weight:500; margin-right:16px; transition: background-color 0.3s ease;">
+                <button id="start-reading-btn" onclick="location.href='articles.html';" style="padding: 8px 16px; background-color: #111111; color: white; border: none; border-radius: 32px; cursor: pointer; font-family: 'Poppins', serif; font-size: 13px; font-weight:500; margin-right:16px; transition: background-color 0.3s ease;">
 
                     Start Reading
 
                 </button>
-                <img src="menu.png" alt="Menu" style="height:26px; width:26px; cursor: pointer;">
+                <img id="login" src="menu.png" alt="Menu" style="height:26px; width:26px; cursor: pointer;">
             </div>
         </div>
     </header>
@@ -116,9 +116,8 @@
     // Your existing logic here
     document.addEventListener("DOMContentLoaded", function() {
         const startReadingButton = document.getElementById('start-reading-btn');
-        const menuImage = document.getElementById('menu-image');
-        const userName = document.getElementById('user-name');
-
+        const menuImage = document.getElementById('login');
+        
         const provider = new GoogleAuthProvider();
 
         // Firebase Auth state change listener
@@ -127,7 +126,6 @@
                 if (user.email === 'iamnikithamal@gmail.com') {
                     startReadingButton.textContent = "Start Writing";
                     startReadingButton.onclick = () => window.location.href = "write.html";
-                    userName.textContent = `Welcome, ${user.displayName}`;
                 } else {
                     startReadingButton.textContent = "Start Reading";
                     startReadingButton.onclick = () => alert("You are not an admin.");
@@ -136,7 +134,6 @@
             } else {
                 startReadingButton.textContent = "Start Reading";
                 startReadingButton.onclick = () => alert("Please log in first.");
-                userName.textContent = "";
             }
         });
 
