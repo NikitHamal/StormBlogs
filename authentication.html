@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Google Sign-In
+        function googleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    const user = result.user;
+                    document.getElementById("user-info").innerHTML = `
+                        <img src="${user.photoURL}" alt="Profile Photo" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 12px;">
+                        <h3 style="margin: 4px 0;">${user.displayName}</h3>
+                        <p style="margin: 4px 0; color: #555;">${user.email}</p>
+                        <button onclick="logout()" style="margin-top: 12px; padding: 10px; font-size: 14px; background: red; color: white; border: none; border-radius: 6px; cursor: pointer;">Logout</button>
+                    `;
+                    document.getElementById("auth-container").style.display = "none";
+                    document.getElementById("user-info").style.display = "block";
+                })
+                .catch((error) => {
+                    console.error(error.message);
+                    alert("Authentication failed!");
+                });
+        }
+
+        // Logout Function
+        function logout() {
+            auth.signOut().then(() => {
+                document.getElementById("auth-container").style.display = "block";
+                document.getElementById("user-info").style.display = "none";
+            }).catch((error) => {
+                console.error(error);
+            });
+        }
+    </script>
+</head>
+<body style="font-family: 'Poppins', sans-serif; margin: 0; padding: 0; text-align: center; background: #f8f9fa; color: #333;">
+
+    <div style="max-width: 400px; margin: 80px auto; padding: 24px; background: white; border-radius: 12px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <h2 style="margin-bottom: 16px;">Welcome to StormBlogs</h2>
+
+        <!-- Google Login Container -->
+        <div id="auth-container">
+            <button onclick="googleLogin()" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 12px; font-size: 16px; background: #4285F4; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo" style="width: 24px; height: 24px;">
+                Sign in with Google
+            </button>
+        </div>
+
+        <!-- User Info Display -->
+        <div id="user-info" style="display: none; margin-top: 20px;"></div>
+    </div>
+
+</body>
+</html>
