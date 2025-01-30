@@ -83,6 +83,27 @@
         </div>
 
 
+<script type="module"> 
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.2.0/firebase-analytics.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+        authDomain: "storm-blogs.firebaseapp.com",
+        projectId: "storm-blogs",
+        storageBucket: "storm-blogs.firebasestorage.app",
+        messagingSenderId: "158567556221",
+        appId: "1:158567556221:web:855dfa074fc5b65e68fd14",
+        measurementId: "G-YNFQ8NKPSJ"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+</script>
+
 
 </body>
 </html>
