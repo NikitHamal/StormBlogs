@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Authentication - StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js"></script>
 
+    <!-- Firebase SDK (MODULAR IMPORTS) -->
     <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js";
+
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
@@ -22,13 +23,13 @@
         };
 
         // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-        // Google Sign-In
-        function googleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
+        // Google Sign-In Function
+        window.googleLogin = () => {
+            signInWithPopup(auth, provider)
                 .then((result) => {
                     const user = result.user;
                     document.getElementById("user-info").innerHTML = `
@@ -44,17 +45,17 @@
                     console.error(error.message);
                     alert("Authentication failed!");
                 });
-        }
+        };
 
         // Logout Function
-        function logout() {
-            auth.signOut().then(() => {
+        window.logout = () => {
+            signOut(auth).then(() => {
                 document.getElementById("auth-container").style.display = "block";
                 document.getElementById("user-info").style.display = "none";
             }).catch((error) => {
                 console.error(error);
             });
-        }
+        };
     </script>
 </head>
 <body style="font-family: 'Poppins', sans-serif; margin: 0; padding: 0; text-align: center; background: #f8f9fa; color: #333;">
