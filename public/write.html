@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a New Post - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("post-form").addEventListener("submit", function(event) {
+                event.preventDefault();
+                
+                // Gather form data
+                const title = document.getElementById("title").value;
+                const category = document.getElementById("category").value;
+                const content = document.getElementById("content").value;
+
+                if (!title || !category || !content) {
+                    alert("Please fill in all fields.");
+                    return;
+                }
+
+                const newPost = {
+                    id: Date.now(),  // Unique ID based on timestamp
+                    title: title,
+                    category: category,
+                    content: content,
+                    timestamp: Date.now(),
+                    views: 0,
+                    likes: 0,
+                    comments: 0
+                };
+
+                fetch("http://localhost:8000/posts", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify(newPost)
+})
+.then(response => response.json())
+.then(data => console.log("Post added:", data))
+.catch(error => console.error("Error:", error));
+;
+            });
+        });
+    </script>
+</head>
+<body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; color: #333;">
+
+<header>
+    <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; margin: 32px; margin-top: 36px;">
+            <img onclick="location.href='home.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height: 26px; width: 26px; cursor: pointer;">
+            <h4 onclick="location.href='home.html';" style="color: #111111; margin: 0; cursor: pointer;">/Storm Blogs</h4>
+        </div>
+    </div>
+</header>
+
+<main style="max-width: 800px; margin: auto; padding: 32px;">
+    <h3 style="text-align: center;">Create a New Post</h3>
+
+    <form id="post-form">
+        <div style="margin-bottom: 16px;">
+            <label for="title" style="display: block; font-weight: 600; margin-bottom: 8px;">Title</label>
+            <input type="text" id="title" name="title" required style="width: 100%; padding: 8px; font-size: 16px;">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label for="category" style="display: block; font-weight: 600; margin-bottom: 8px;">Category</label>
+            <input type="text" id="category" name="category" required style="width: 100%; padding: 8px; font-size: 16px;">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label for="content" style="display: block; font-weight: 600; margin-bottom: 8px;">Content</label>
+            <textarea id="content" name="content" rows="6" required style="width: 100%; padding: 8px; font-size: 16px;"></textarea>
+        </div>
+
+        <button type="submit" style="background-color: #007BFF; color: white; padding: 12px 24px; font-size: 16px; border: none; cursor: pointer; width: 100%;">Publish Post</button>
+    </form>
+</main>
+
+</body>
+</html>
