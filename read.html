@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StormBlogs - Read Article</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Include Firebase App SDK -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
@@ -77,6 +78,9 @@
         </div>
     </div>
 </header>
+
+<span class="material-icons" onclick="window.history.back()" style="margin-left:40px; margin-bottom:16px; padding:8px; cursor:pointer;">arrow_back_ios</span>
+
 
 <main style="margin: 32px; margin-top:0px; background-color: #fff; padding: 8px; padding-top:0px;">
     <div id="article-content">
