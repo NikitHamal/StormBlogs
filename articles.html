@@ -87,14 +87,23 @@
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; color: #333; scroll-behavior: smooth;">
 <header>
     <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; margin:32px; margin-top:36px;">
+        <div style="display: flex; align-items: center; margin:32px; margin-top:36px; margin-bottom:6px;">
             <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
             <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
         </div>
     </div>
 </header>
+<!-- Top Navigation Bar -->
+<nav style="padding: 8px 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; background-color: white;">
 
-<h3 style="margin:32px; text-align: center;">Articles</h3>
+    <!-- Links -->
+    <div style="display: flex; gap: 16px; margin-right: 16px; margin-left: 20px;">
+        
+<a href="index.html" style="text-decoration: none; font-size: 16px; font-weight:500; padding: 8px 16px; transition: background-color 0.3s ease; color: black; position: relative;" id="home-tab">Home</a>
+        
+<a href="articles.html" style="text-decoration: none; border-bottom:2px solid black; font-size: 16px; font-weight:500; padding: 8px 16px; transition: background-color 0.3s ease; color: black;" id="articles-tab">Articles</a>
+</nav>
+
 <div id="blog-feed" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start; padding: 32px; margin: 0 auto; max-width: 100%;"></div>
 
 </body>
