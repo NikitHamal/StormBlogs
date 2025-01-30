@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-   <!-- Add Firebase App script -->
+   
 <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
 
-<!-- Add Firebase Auth script -->
+
 <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
 
-<!-- Add Firebase Firestore script -->
+
 <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 
 </head>
@@ -51,7 +51,6 @@
 <input type="text" placeholder="Search Articles" style="width: 100%; border: none; background: none; outline: none; padding: 8px 0; font-size: 15px; color: #333; font-family:'Poppins', serif;">
     
 </div>
-
     
 </div>
 
@@ -59,51 +58,20 @@
 <p style="font-weight:600; margin-top:8px; margin-bottom:0px; font-size:20px;"> Featured Articles </p>
 </div>
 
-<div style="display: flex; gap: 16px; margin:32px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
-            <div style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; color: #111; background: #8DE4AF;">
-                <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">Technology</p>
-                <p style="font-weight:600; font-size:18px; margin:8px 0;">AI and the Future</p>
-                <p style="font-size: 14px; color: rgba(0, 0, 0, 0.7); margin: 8px 0;">Artificial intelligence is transforming industries and shaping the future of work. AI is being integrated into various fields, bringing automation and efficiency...</p>
-                <span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;">Read More</span>
-            </div>
-            <div style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; color: white; background: #111;">
-                <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">Philosophy</p>
-                <p style="font-weight:600; font-size:18px; margin:8px 0;">The Nature of Reality</p>
-                <p style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin: 8px 0;">Exploring the concept of reality beyond human perception and thought. Many philosophers argue about the distinction between perceived and actual reality...</p>
-                <span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;">Read More</span>
-            </div>
-            <div style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; color: #111; background: #D7AFFF;">
-                <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">Well-being</p>
-                <p style="font-weight:600; font-size:18px; margin:8px 0;">Mindfulness in Daily Life</p>
-                <p style="font-size: 14px; color: rgba(0, 0, 0, 0.7); margin: 8px 0;">Practicing mindfulness can enhance focus, reduce stress, and improve well-being. Studies suggest that mindful breathing and meditation bring clarity and balance...</p>
-                <span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;">Read More</span>
-            </div>
-            <div style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; color: #111; background: #FCE77D;">
-                <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">Finance</p>
-                <p style="font-weight:600; font-size:18px; margin:8px 0;">Smart Investing</p>
-                <p style="font-size: 14px; color: rgba(0, 0, 0, 0.7); margin: 8px 0;">Understanding the key principles of investing to secure financial stability. Learning about stocks, bonds, and market trends can help in wealth building...</p>
-                <span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;">Read More</span>
-            </div>
-        </div>
-        <div style="margin-top: 32px; text-align: center;">
-            <button onclick="location.href='articles.html';"  style="padding: 12px 24px; background-color: #111111; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 14px; font-weight:600; transition: background-color 0.3s ease; margin-bottom:32px;">
-                Explore All Articles
-            </button>
-        </div>
+<div id="featured-posts" style="display: flex; flex-wrap: wrap; gap: 16px; margin: 32px;">
+</div>
 
-
-<!-- Add Firebase App script -->
 <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
-    import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
+    import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
 
     // Firebase configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
         authDomain: "storm-blogs.firebaseapp.com",
         projectId: "storm-blogs",
-        storageBucket: "storm-blogs.firebaseapp.com",
+        storageBucket: "storm-blogs.firebasestorage.app",
         messagingSenderId: "158567556221",
         appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
     };
@@ -113,42 +81,108 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Your existing logic here
-    document.addEventListener("DOMContentLoaded", function() {
-        const startReadingButton = document.getElementById('start-reading-btn');
-        const menuImage = document.getElementById('login');
-        
+    // Google Sign-In function
+    function googleSignIn() {
         const provider = new GoogleAuthProvider();
-
-        // Firebase Auth state change listener
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                if (user.email === 'iamnikithamal@gmail.com') {
-                    startReadingButton.textContent = "Start Writing";
-                    startReadingButton.onclick = () => window.location.href = "write.html";
-                } else {
-                    startReadingButton.textContent = "Start Reading";
-                    startReadingButton.onclick = () => alert("You are not an admin.");
-                    userName.textContent = `Welcome, ${user.displayName}`;
-                }
-            } else {
-                startReadingButton.textContent = "Start Reading";
-                startReadingButton.onclick = () => alert("Please log in first.");
-            }
-        });
-
-        // Google login on menu image click
-        menuImage.onclick = function() {
-            signInWithPopup(auth, provider).then(result => {
+        signInWithPopup(auth, provider)
+            .then((result) => {
                 const user = result.user;
-                console.log('Logged in as:', user.email);
-            }).catch(error => {
-                console.error("Login Error:", error);
+                console.log("User signed in:", user.displayName);
+                document.getElementById("google-sign-in").innerHTML = `<p>Signed in as ${user.displayName}</p>`;
+            })
+            .catch((error) => {
+                console.error("Error signing in with Google:", error);
             });
-        };
-    });
-</script>
+    }
 
+    // Sign out function
+    function googleSignOut() {
+        signOut(auth)
+            .then(() => {
+                console.log("User signed out");
+                document.getElementById("google-sign-in").innerHTML = `
+                    <button onclick="googleSignIn()" style="padding: 12px 24px; background-color: #4285F4; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background-color 0.3s ease;">
+                        Sign in with Google
+                    </button>
+                `;
+            })
+            .catch((error) => {
+                console.error("Error signing out:", error);
+            });
+    }
+
+    // Monitor authentication state
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById("google-sign-in").innerHTML = `
+                <p>Signed in as ${user.displayName}</p>
+                <button onclick="googleSignOut()" style="padding: 12px 24px; background-color: #db4437; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background-color 0.3s ease;">
+                    Sign out
+                </button>
+            `;
+        }
+    });
+
+    // Function to fetch featured posts
+    document.addEventListener("DOMContentLoaded", function() {
+        const featuredPostsRef = collection(db, "posts");
+        const featuredQuery = query(featuredPostsRef, where("featured", "==", true));
+
+        getDocs(featuredQuery)
+            .then(snapshot => {
+                if (snapshot.empty) {
+                    document.getElementById("featured-posts").innerHTML = "<p style='text-align:center;'>No featured articles available.</p>";
+                    return;
+                }
+
+                let feedHtml = "";
+                let count = 0; // To load maximum 4 featured posts
+                snapshot.forEach(doc => {
+                    const post = doc.data();
+                    if (count < 4) {
+                        let timeDiff = Date.now() - post.timestamp;
+                        let timeAgo = formatTimeAgo(timeDiff);
+                        let truncatedContent = post.content.length > 160 ? post.content.substring(0, 160) + '...' : post.content
+
+                        feedHtml += `
+                            <div style="flex: 1; max-width: 280px; padding: 20px; border-radius: 12px; color: ${post.backgroundColor === "dark" ? 'white' : '#111'}; background: ${post.backgroundColor || '#D7AFFF'};">
+                                
+<p style="font-weight: 600; font-size: 14px; margin: 0 0 8px 0;">${post.category}</p>
+                                
+<p style="font-weight: 600; font-size: 18px; margin: 8px 0;">${post.title}</p>
+                                
+<p style="font-size: 14px; color: ${post.backgroundColor === "dark" ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'}; margin: 8px 0;">${truncatedContent}</p>
+                                
+<span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;" onclick="location.href='read.html?id=${doc.id}'">Read More</span>
+                            </div>
+                        `;
+                        count++;
+                    }
+                });
+                document.getElementById("featured-posts").innerHTML = feedHtml;
+            })
+            .catch(error => console.error("Error loading featured posts:", error));
+    });
+
+    // Function to format time difference
+    function formatTimeAgo(milliseconds) {
+        const seconds = Math.floor(milliseconds / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        const weeks = Math.floor(days / 7);
+        const months = Math.floor(days / 30);
+        const years = Math.floor(days / 365);
+        
+        if (years > 0) return `${years} year${years > 1 ? 's' : ''}`;
+        if (months > 0) return `${months} month${months > 1 ? 's' : ''}`;
+        if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''}`;
+        if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+        if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+        return `${seconds} second${seconds > 1 ? 's' : ''}`;
+    }
+</script>
 
 </body>
 </html>
