@@ -39,7 +39,7 @@
       document.getElementById("article-title").textContent = post.title;
       document.getElementById("article-category").textContent = post.category;
       document.getElementById("article-time").textContent = formatTimeAgo(Date.now() - post.timestamp);
-      document.getElementById("article-body").innerHTML = post.body;
+      document.getElementById("article-body").innerHTML = post.content;
     } else {
       console.log("No such document!");
       document.getElementById("article-content").innerHTML = "<p style='text-align:center;'>Article not found.</p>";
