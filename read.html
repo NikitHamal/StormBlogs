@@ -1,119 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StormBlogs - Read Article</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-  
-  // Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
-    authDomain: "storm-blogs.firebaseapp.com",
-    projectId: "storm-blogs",
-    storageBucket: "storm-blogs.firebasestorage.app",
-    messagingSenderId: "158567556221",
-    appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
-  };
+  <!-- Open Graph meta tags with dynamic IDs for updating later -->
+  <meta property="og:title" id="og-title" content="Your Blog Post Title Here">
+  <meta property="og:description" id="og-description" content="A brief summary of the blog post content.">
+  <meta property="og:image" id="og-image" content="https://nikithamal.github.io/StormBlogs/default-image.jpg">
+  <meta property="og:url" content="https://nikithamal.github.io/StormBlogs/read.html?id=WcB4tJOvKoLnKecwiRSe">
+  <meta property="og:type" content="article">
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  <title>StormBlogs - Read Article</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
-  // Fetch the post from Firestore
-  const urlParams = new URLSearchParams(window.location.search);
-  const postId = urlParams.get('id');
-  console.log("Post ID from URL:", postId);
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+      authDomain: "storm-blogs.firebaseapp.com",
+      projectId: "storm-blogs",
+      storageBucket: "storm-blogs.firebasestorage.app",
+      messagingSenderId: "158567556221",
+      appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+    };
 
-  getDoc(doc(db, "posts", postId)).then(docSnap => {
-    if (docSnap.exists()) {
-      const post = docSnap.data();
-      console.log("Post data:", post);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-      document.getElementById("article-title").textContent = post.title;
-      document.getElementById("article-title-b").textContent = post.title;
-      document.getElementById("article-category").textContent = post.category;
-      document.getElementById("article-time").textContent = formatTimeAgo(Date.now() - post.timestamp);
-      document.getElementById("article-body").innerHTML = post.content
-    .split("\n")
-    .map(line => `<p>${line}</p>`)
-    .join("");
+    // Fetch the post from Firestore
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('id');
+    console.log("Post ID from URL:", postId);
 
-    } else {
-      console.log("No such document!");
+    getDoc(doc(db, "posts", postId)).then(docSnap => {
+      if (docSnap.exists()) {
+        const post = docSnap.data();
+        console.log("Post data:", post);
+
+        // Update page content
+        document.getElementById("article-title").textContent = post.title;
+        document.getElementById("article-title-b").textContent = post.title;
+        document.getElementById("article-category").textContent = post.category;
+        document.getElementById("article-time").textContent = formatTimeAgo(Date.now() - post.timestamp);
+        document.getElementById("article-body").innerHTML = post.content
+          .split("\n")
+          .map(line => `<p>${line}</p>`)
+          .join("");
+
+        // Update Open Graph meta tags for social media previews
+        document.getElementById("og-title").setAttribute("content", post.title);
+        // Create a brief description from the content (first 150 characters)
+        let description = post.content.length > 150 ? post.content.substring(0, 150) + "..." : post.content;
+        document.getElementById("og-description").setAttribute("content", description);
+        // Optionally update og:image if your post data contains an image URL; else, it remains the default.
+        if(post.image) {
+          document.getElementById("og-image").setAttribute("content", post.image);
+        }
+      } else {
+        console.log("No such document!");
+        document.getElementById("article-content").innerHTML = "<p style='text-align:center;'>Article not found.</p>";
+      }
+    }).catch(error => {
+      console.error("Error loading post:", error);
       document.getElementById("article-content").innerHTML = "<p style='text-align:center;'>Article not found.</p>";
+    });
+
+    function formatTimeAgo(milliseconds) {
+      const seconds = Math.floor(milliseconds / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      const weeks = Math.floor(days / 7);
+      const months = Math.floor(days / 30);
+      const years = Math.floor(days / 365);
+
+      if (years > 0) return `${years} year${years > 1 ? 's' : ''}`;
+      if (months > 0) return `${months} month${months > 1 ? 's' : ''}`;
+      if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''}`;
+      if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+      if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+      if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+      return `${seconds} second${seconds > 1 ? 's' : ''}`;
     }
-  }).catch(error => {
-    console.error("Error loading post:", error);
-    document.getElementById("article-content").innerHTML = "<p style='text-align:center;'>Article not found.</p>";
-  });
-
-  function formatTimeAgo(milliseconds) {
-    const seconds = Math.floor(milliseconds / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    const weeks = Math.floor(days / 7);
-    const months = Math.floor(days / 30);
-    const years = Math.floor(days / 365);
-
-    if (years > 0) return `${years} year${years > 1 ? 's' : ''}`;
-    if (months > 0) return `${months} month${months > 1 ? 's' : ''}`;
-    if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''}`;
-    if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
-    return `${seconds} second${seconds > 1 ? 's' : ''}`;
-  }
-</script>
+  </script>
 
 </head>
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333; scroll-behavior: smooth;">
 
-<header>
+  <header>
     <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; margin:32px; margin-top:36px;">
-            <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
-            <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
-        </div>
+      <div style="display: flex; align-items: center; margin:32px; margin-top:36px;">
+        <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
+        <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
+      </div>
     </div>
-</header>
+  </header>
 
-<div style="font-size: 14px; margin:32px; margin-top: 0px; font-weight: bold; display: flex; align-items: center; color: #757575; border-bottom: 1px solid #ddd; padding-bottom: 10px;  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+  <div style="font-size: 14px; margin:32px; margin-top: 0px; font-weight: bold; display: flex; align-items: center; color: #757575; border-bottom: 1px solid #ddd; padding-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
     <a href="index.html" style="color: #000; text-decoration: none;">HOME</a>
     <span style="margin: 0 5px;"> / </span>
     <a href="articles.html" style="color: #000; text-decoration: none;">ARTICLES</a>
     <span style="margin: 0 5px;"> / </span>
-    <span id="article-title-b"style="color: #757575;"></span>
-</div>
+    <span id="article-title-b" style="color: #757575;"></span>
+  </div>
 
-
-<main style="margin: 32px; margin-top:0px; padding: 8px; padding-top:0px;">
+  <main style="margin: 32px; margin-top:0px; padding: 8px; padding-top:0px;">
     <div id="article-content">
-        <p id="article-category" style="color:black; font-size:12px; font-weight:500; margin-bottom: 8px; background-color:#D7AFFF; border-radius:32px; padding:4px 16px; width:fit-content;"></p>
-
-        <h1 id="article-title" style="margin-bottom: 16px;"></h1>
-
-        
-<article role="article" id="article-body" style="font-size:16px; font-weight:400; line-height: 2; whitespace:  pre-line; word-wrap: break-word;"></article>
-
-<div style="display: flex; align-items: center; margin-top:32px;">
-                <img src="profile.jpg" alt="Profile" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-right: 8px;">
-                <span style="font-weight: 500; font-size: 18px; margin-right:12px;">Nikit Hamal</span>
-                <i class="far fa-clock" style="margin-right: 5px;"></i>
-                <span id="article-time" style="font-size:14px;"></span>
-            </div>
-
-        
+      <p id="article-category" style="color:black; font-size:12px; font-weight:500; margin-bottom: 8px; background-color:#D7AFFF; border-radius:32px; padding:4px 16px; width:fit-content;"></p>
+      <h1 id="article-title" style="margin-bottom: 16px;"></h1>
+      <article role="article" id="article-body" style="font-size:16px; font-weight:400; line-height: 2; white-space: pre-line; word-wrap: break-word;"></article>
+      <div style="display: flex; align-items: center; margin-top:32px;">
+        <img src="profile.jpg" alt="Profile" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-right: 8px;">
+        <span style="font-weight: 500; font-size: 18px; margin-right:12px;">Nikit Hamal</span>
+        <i class="far fa-clock" style="margin-right: 5px;"></i>
+        <span id="article-time" style="font-size:14px;"></span>
+      </div>
     </div>
-
-</main>
+  </main>
 
 </body>
 </html>
