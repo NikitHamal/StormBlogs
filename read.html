@@ -4,13 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Open Graph meta tags with dynamic IDs for updating later -->
-  <meta property="og:title" id="og-title" content="Your Blog Post Title Here">
-  <meta property="og:description" id="og-description" content="A brief summary of the blog post content.">
-  <meta property="og:image" id="og-image" content="https://nikithamal.github.io/StormBlogs/default-image.jpg">
-  <meta property="og:url" content="https://nikithamal.github.io/StormBlogs/read.html?id=WcB4tJOvKoLnKecwiRSe">
-  <meta property="og:type" content="article">
-
   <title>StormBlogs - Read Article</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -53,24 +46,6 @@
           .split("\n")
           .map(line => `<p>${line}</p>`)
           .join("");
-
-        // Update Open Graph meta tags for social media previews
-        document.getElementById("og-title").setAttribute("content", post.title);
-        // Create a brief description from the content (first 150 characters)
-        let description = post.content.length > 150 ? post.content.substring(0, 150) + "..." : post.content;
-        document.getElementById("og-description").setAttribute("content", description);
-        // Optionally update og:image if your post data contains an image URL; else, it remains the default.
-        if(post.image) {
-          document.getElementById("og-image").setAttribute("content", post.image);
-        }
-      } else {
-        console.log("No such document!");
-        document.getElementById("article-content").innerHTML = "<p style='text-align:center;'>Article not found.</p>";
-      }
-    }).catch(error => {
-      console.error("Error loading post:", error);
-      document.getElementById("article-content").innerHTML = "<p style='text-align:center;'>Article not found.</p>";
-    });
 
     function formatTimeAgo(milliseconds) {
       const seconds = Math.floor(milliseconds / 1000);
