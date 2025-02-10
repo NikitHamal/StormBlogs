@@ -247,6 +247,80 @@ window.handleChatInput = (e) => {
     ];
     }
 
+    document.addEventListener('dblclick', async (event) => {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    if (!selectedText || selectedText.split(/\s+/).length > 2) {
+        return; // Ignore selections longer than 2 words
+    }
+
+    try {
+        // Show loading indicator
+        const tooltip = createDefinitionTooltip(event.clientX, event.clientY);
+        tooltip.innerHTML = '<div class="loading">Analyzing...</div>';
+
+        // Get definition from Gemini
+        const prompt = `Define "${selectedText}" in this article's context: ${articleContext}\n` + 
+                      `Provide: 1. Dictionary definition 2. Contextual meaning 3. Example sentence`;
+        
+        const result = await model.generateContent(prompt);
+        const definition = await result.response.text();
+
+        // Display result
+        tooltip.innerHTML = `
+            <div class="definition-card">
+                <h4>${selectedText}</h4>
+                <div class="definition-content">${definition}</div>
+                <button onclick="this.parentElement.remove()" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error("Definition error:", error);
+        tooltip.innerHTML = '<div class="error">Failed to load definition</div>';
+        setTimeout(() => tooltip.remove(), 2000);
+    }
+});
+
+function createDefinitionTooltip(x, y) {
+    const existingTooltip = document.querySelector('.definition-tooltip');
+    if (existingTooltip) existingTooltip.remove();
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'definition-tooltip';
+    tooltip.style.left = `${x + 15}px`;
+    tooltip.style.top = `${y + 15}px`;
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
+
+// Rate limiting
+let lastRequest = 0;
+document.addEventListener('dblclick', async (event) => {
+    if (Date.now() - lastRequest < 2000) return;
+    lastRequest = Date.now();
+    // ... rest of the code
+});
+
+// Keyboard shortcut support
+document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === 'd') {
+        const selection = window.getSelection();
+        // Trigger definition lookup
+    }
+});
+
+// Click-outside-to-close
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.definition-tooltip')) {
+        document.querySelectorAll('.definition-tooltip').forEach(t => t.remove());
+    }
+});
+
+
     async function loadComments() {
         const docRef = doc(db, "posts", postId);
         const docSnap = await getDoc(docRef);
@@ -419,6 +493,45 @@ window.handleChatInput = (e) => {
   </script>
 
   <style>
+
+.definition-tooltip {
+    position: fixed;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 16px;
+    max-width: 300px;
+    z-index: 1000;
+}
+
+.definition-card h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+}
+
+.definition-content {
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: #666;
+}
     .article-content {
         font-size: 1.1rem;
         line-height: 1.8;
