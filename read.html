@@ -13,6 +13,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai@0.3.0";
     
     // Firebase configuration
     const firebaseConfig = {
@@ -24,19 +25,159 @@
       appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
     };
 
-    // Initialize Firebase
+    // Initialize Firebase and Gemini
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
-    const auth = getAuth();
-    let currentUser = null;
+    const genAI = new GoogleGenerativeAI("AIzaSyACk4YyXgd_VOvBlFWV8r17LuwkT1iGfmg");
+    const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    systemInstruction: {
+        parts: [{ text: "You are an expert assistant for this article." }]
+    }
+});
 
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        if (user) {
-            checkUserLike();
+    let articleContext = '';
+    let chatHistory = [];
+
+    // Make all functions globally available
+    window.checkUserLike = async (articleId) => {
+        if (!auth.currentUser) return false;
+        const articleDoc = await getDoc(doc(db, "posts", articleId));
+        return articleDoc.data()?.likes?.includes(auth.currentUser.uid) || false;
+    };
+
+    // Add this in the global functions section
+window.handleChatInput = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+};
+    // Add this helper function
+function truncateContext(text, maxLength = 30000) {
+    return text.length > maxLength 
+        ? text.substring(0, maxLength) + '... [truncated]' 
+        : text;
+}
+
+    window.generateSummary = async () => {
+        const summaryBtn = document.querySelector('.summary-btn');
+        const summaryContent = document.getElementById('summaryContent');
+        
+        try {
+            summaryBtn.disabled = true;
+            summaryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            
+            const prompt = `Please provide a concise 3-paragraph summary of this article. 
+        Focus on key points and main arguments. 
+        Article: ${articleContext}`;
+            const result = await model.generateContent(prompt);
+            const summary = await result.response.text();
+            
+            summaryContent.innerHTML = `
+                <div class="summary-box">
+                    <h3>AI Summary</h3>
+                    <p>${summary}</p>
+                </div>
+            `;
+        } catch (error) {
+            console.error("Error generating summary:", error);
+            summaryContent.innerHTML = '<p class="error">Failed to generate summary. Please try again.</p>';
+        } finally {
+            summaryBtn.disabled = false;
+            summaryBtn.innerHTML = '<i class="fas fa-robot"></i> Summarize with AI';
         }
-    });
+    };
 
+   // Update the sendMessage function
+   window.sendMessage = async () => {
+    const chatInput = document.getElementById('chatInput');
+    const userMessage = chatInput.value.trim();
+    
+    if (!userMessage) return;
+    
+    try {
+        appendMessage('user', userMessage);
+        chatInput.value = '';
+        appendMessage('typing', '');
+
+        // Structure message properly
+        const chat = model.startChat({
+            history: chatHistory,
+            generationConfig: {
+                maxOutputTokens: 1000,
+            },
+            systemInstruction: {
+                role: "model",
+                parts: [{ text: `You are discussing this article: ${articleContext}` }]
+            }
+        });
+
+        // Send message with proper structure
+        const result = await chat.sendMessage(userMessage);
+        const response = await result.response.text();
+        
+        removeTypingIndicator();
+        appendMessage('ai', response);
+        
+        // Store history correctly
+        chatHistory.push({
+            role: "user",
+            parts: [{ text: userMessage }]
+        });
+        chatHistory.push({
+            role: "model",
+            parts: [{ text: response }]
+        });
+        
+    } catch (error) {
+        console.error("Error sending message:", error);
+        removeTypingIndicator();
+        appendMessage('error', 'Failed to get response. Please try again.');
+    }
+};
+
+    window.appendMessage = (type, content) => {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${type}-message`;
+        
+        if (type === 'typing') {
+            messageDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>'}
+                    <p>${content}</p>
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    window.removeTypingIndicator = () => {
+        const typingIndicator = document.querySelector('.typing-indicator')?.parentElement;
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    };
+
+    // Add this function to handle Enter key submission
+window.handleChatInput = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+};
     // Fetch the post from Firestore
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get('id');
@@ -75,9 +216,9 @@
                 document.getElementById("like-count").textContent = post.likes || 0;
                 
                 // Check if user has liked the post
-                if (currentUser) {
+                if (auth.currentUser) {
                     const likedBy = post.likedBy || [];
-                    if (likedBy.includes(currentUser.uid)) {
+                    if (likedBy.includes(auth.currentUser.uid)) {
                         document.querySelector('#like-btn i').classList.remove('far');
                         document.querySelector('#like-btn i').classList.add('fas');
                     }
@@ -85,11 +226,25 @@
 
                 // Load comments
                 await loadComments();
+
+                // Update article context
+                articleContext = `Title: ${post.title}\n\nContent: ${post.content}`;
             }
         } catch (error) {
             console.error("Error loading post:", error);
             document.getElementById("article-content").innerHTML = "<p>Error loading article</p>";
         }
+        // Initialize chat history
+    chatHistory = [
+        {
+            role: "user",
+            parts: [{ text: `ARTICLE CONTEXT: ${articleContext}` }]
+        },
+        {
+            role: "model",
+            parts: [{ text: 'I have read the article. Ask me anything!'}]
+        }
+    ];
     }
 
     async function loadComments() {
@@ -118,7 +273,7 @@
 
     // Modify like button handler
     document.getElementById('like-btn').addEventListener('click', async () => {
-        if (!currentUser) {
+        if (!auth.currentUser) {
             alert('Please login to like posts');
             window.location.href = 'login.html';
             return;
@@ -129,11 +284,11 @@
         const likedBy = postDoc.data().likedBy || [];
         
         try {
-            if (likedBy.includes(currentUser.uid)) {
+            if (likedBy.includes(auth.currentUser.uid)) {
                 // Unlike
                 await updateDoc(postRef, {
                     likes: increment(-1),
-                    likedBy: arrayRemove(currentUser.uid)
+                    likedBy: arrayRemove(auth.currentUser.uid)
                 });
                 document.querySelector('#like-btn i').classList.remove('fas');
                 document.querySelector('#like-btn i').classList.add('far');
@@ -141,7 +296,7 @@
                 // Like
                 await updateDoc(postRef, {
                     likes: increment(1),
-                    likedBy: arrayUnion(currentUser.uid)
+                    likedBy: arrayUnion(auth.currentUser.uid)
                 });
                 document.querySelector('#like-btn i').classList.remove('far');
                 document.querySelector('#like-btn i').classList.add('fas');
@@ -156,7 +311,7 @@
 
     // Modify comment submission
     document.getElementById('submit-comment').addEventListener('click', async () => {
-        if (!currentUser) {
+        if (!auth.currentUser) {
             alert('Please login to comment');
             window.location.href = 'login.html';
             return;
@@ -171,9 +326,9 @@
                 comments: arrayUnion({
                     text: comment,
                     timestamp: Date.now(),
-                    userId: currentUser.uid,
-                    userName: currentUser.displayName || currentUser.email.split('@')[0],
-                    userPhotoURL: currentUser.photoURL
+                    userId: auth.currentUser.uid,
+                    userName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
+                    userPhotoURL: auth.currentUser.photoURL
                 })
             });
             
@@ -251,6 +406,16 @@
             likeButton.querySelector('i').classList.add('fas');
         }
     }
+
+    // Initialize when auth state changes
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const isLiked = await checkUserLike(postId);
+            loadPost();
+        } else {
+            loadPost();
+        }
+    });
   </script>
 
   <style>
@@ -384,6 +549,142 @@
             font-size: 1.2rem;
         }
     }
+
+    .ai-features {
+        margin-top: 40px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+
+    .summary-btn, .chat-btn {
+        background: #333;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .summary-btn:hover, .chat-btn:hover {
+        background: #444;
+    }
+
+    .summary-btn:disabled {
+        background: #666;
+        cursor: not-allowed;
+    }
+
+    .summary-content {
+        margin-top: 20px;
+    }
+
+    .summary-box {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+    }
+
+    .summary-box h3 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+
+    .chat-message {
+        margin-bottom: 15px;
+    }
+
+    .message-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .user-message .message-content {
+        flex-direction: row-reverse;
+    }
+
+    .message-content i {
+        background: #333;
+        color: white;
+        padding: 8px;
+        border-radius: 50%;
+    }
+
+    .message-content p {
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        margin: 0;
+        max-width: 70%;
+    }
+
+    .user-message .message-content p {
+        background: #333;
+        color: white;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-input textarea {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        font-family: inherit;
+        resize: none;
+    }
+
+    .chat-input textarea:focus {
+        outline: none;
+        border-color: #333;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 12px;
+        background: white;
+        border-radius: 12px;
+        width: fit-content;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #333;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+
+    .error-message p {
+        color: #ff4757;
+    }
   </style>
 
 </head>
@@ -441,6 +742,31 @@
         
         <!-- Comments List -->
         <div id="comments-list" style="margin-top: 24px;"></div>
+      </div>
+
+      <!-- Add this after the article content -->
+      <div class="ai-features">
+          <div class="article-summary" id="summarySection">
+              <button onclick="generateSummary()" class="summary-btn">
+                  <i class="fas fa-robot"></i> Summarize with AI
+              </button>
+              <div id="summaryContent" class="summary-content"></div>
+          </div>
+
+          <div class="article-chat" id="chatSection">
+              <div class="chat-messages" id="chatMessages"></div>
+              <div class="chat-input">
+                  <textarea 
+                      id="chatInput" 
+                      placeholder="Ask anything about this article..."
+                      rows="3"
+                      onkeydown="handleChatInput(event)"
+                  ></textarea>
+                  <button onclick="sendMessage()" class="chat-btn">
+                      <i class="fas fa-paper-plane"></i>
+                  </button>
+              </div>
+          </div>
       </div>
     </div>
   </main>
