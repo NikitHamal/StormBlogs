@@ -305,12 +305,11 @@ function createDefinitionTooltip(x, y) {
 
     const tooltip = document.createElement('div');
     tooltip.className = 'definition-tooltip';
-    tooltip.style.left = `${x + 15}px`;
-    tooltip.style.top = `${y + 15}px`;
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
     document.body.appendChild(tooltip);
     return tooltip;
 }
-
 
 // Keyboard shortcut support
 document.addEventListener('keydown', (e) => {
