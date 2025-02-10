@@ -13,20 +13,24 @@
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            background: #FDF7F2;
+            background: #f5f5f5;
+            min-height: 100vh;
         }
 
         .write-container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 0 20px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 80px); /* Account for padding */
         }
 
         .editor-header {
             background: white;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             margin-bottom: 20px;
         }
 
@@ -39,6 +43,7 @@
             margin-bottom: 20px;
             font-family: 'Poppins', sans-serif;
             transition: border-color 0.3s ease;
+            font-weight: 600;
         }
 
         .title-input:focus {
@@ -46,32 +51,43 @@
             border-color: #111;
         }
 
+        .title-input::placeholder {
+            color: #ccc;
+        }
+
         .meta-inputs {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 20px;
-            margin-bottom: 20px;
         }
 
         .input-group {
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        .input-group input,
-        .input-group select {
-            width: 100%;
+        .input-group label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .input-group select,
+        .input-group input {
             padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
             transition: all 0.3s ease;
         }
 
-        .input-group input:focus,
-        .input-group select:focus {
+        .input-group select:focus,
+        .input-group input:focus {
             outline: none;
             border-color: #111;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.1);
         }
 
         .theme-tags {
@@ -82,12 +98,13 @@
         }
 
         .theme-tag {
-            background: #f0f0f0;
-            padding: 5px 15px;
+            padding: 8px 16px;
+            background: #eee;
             border-radius: 20px;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            user-select: none;
         }
 
         .theme-tag.selected {
@@ -96,44 +113,45 @@
         }
 
         #editor {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            height: 400px;
             margin-bottom: 20px;
-            min-height: 400px;
+            border-radius: 12px;
         }
-
-        .ql-toolbar {
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            border: none !important;
-            border-bottom: 1px solid #eee !important;
-        }
-
+        
         .ql-container {
-            border: none !important;
-            font-family: 'Poppins', sans-serif !important;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
         }
 
         .action-buttons {
             display: flex;
             gap: 15px;
             justify-content: flex-end;
+            margin-top: auto;
+            padding-top: 20px;
         }
 
         .action-button {
             padding: 12px 24px;
-            border-radius: 30px;
+            border: none;
+            border-radius: 8px;
             font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: none;
-            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .preview-button {
-            background: #f0f0f0;
-            color: #111;
+            background: #eee;
+            color: #333;
+        }
+
+        .preview-button:hover {
+            background: #ddd;
         }
 
         .publish-button {
@@ -141,58 +159,8 @@
             color: white;
         }
 
-        .action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .preview-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .preview-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .image-upload {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .image-preview {
-            width: 100%;
-            height: 200px;
-            border-radius: 10px;
-            background-size: cover;
-            background-position: center;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .upload-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0%;
-            height: 3px;
-            background: #111;
-            transition: width 0.3s ease;
-            display: none;
+        .publish-button:hover {
+            background: #333;
         }
 
         .save-indicator {
@@ -202,42 +170,56 @@
             background: #111;
             color: white;
             padding: 10px 20px;
-            border-radius: 30px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transform: translateY(100px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
         }
 
         .save-indicator.show {
-            opacity: 1;
+            transform: translateY(0);
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @media (max-width: 768px) {
+            .write-container {
+                padding: 20px;
+            }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 0.6s linear infinite;
+            .editor-header {
+                padding: 20px;
+            }
+
+            .title-input {
+                font-size: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            #editor {
+                min-height: 400px;
+            }
+
+            .ql-editor {
+                min-height: 400px;
+            }
         }
     </style>
 
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { 
-            getAuth, 
-            onAuthStateChanged,
-            setPersistence,
-            browserLocalPersistence 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Correct Firebase configuration
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
             authDomain: "storm-blogs.firebaseapp.com",
@@ -254,138 +236,97 @@
 
         // Global variables
         let quill;
-        let imageUrl = '';
         let draftTimeout;
         const AUTOSAVE_DELAY = 2000;
+        let selectedThemes = new Set();
+        let currentUser;
 
-        // Initialize auth with persistence
-        async function initAuth() {
-            try {
-                await setPersistence(auth, browserLocalPersistence);
-                console.log('Auth persistence set to local');
-            } catch (error) {
-                console.error('Failed to set auth persistence:', error);
-                throw error;
-            }
-        }
-
-        // Main initialization
+        // Initialize editor when auth is confirmed
         document.addEventListener('DOMContentLoaded', () => {
-            try {
-                initAuth().then(() => {
-                    const unsubscribe = onAuthStateChanged(auth, (user) => {
-                        if (user) {
-                            console.log('Authenticated user:', user.email);
-                            initializeEditor();
-                        } else {
-                            console.log('No authenticated user');
-                            window.location.href = 'login.html';
-                        }
-                        unsubscribe();
-                    });
-                });
-            } catch (error) {
-                console.error('Auth initialization failed:', error);
-                document.body.innerHTML = `
-                    <div class="error">
-                        Error initializing application. Please refresh.
-                    </div>`;
-            }
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    console.log('Authenticated user:', user.email);
+                    currentUser = user;
+                    initializeEditor();
+                    setupThemeHandling();
+                    loadDraft();
+                } else {
+                    console.log('No authenticated user');
+                    window.location.href = 'login.html';
+                }
+                unsubscribe();
+            });
         });
 
         function initializeEditor() {
-            // Initialize Quill
-            quill = new Quill('#editor', {
-                theme: 'snow',
-                placeholder: 'Start writing your story...',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        ['blockquote', 'code-block'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['link', 'image'],
-                        ['clean']
-                    ]
-                }
-            });
+            const toolbarOptions = [
+                ['bold', 'italic', 'underline', 'strike'],
+                ['blockquote', 'code-block'],
+                [{ 'header': 1 }, { 'header': 2 }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                [{ 'direction': 'rtl' }],
+                [{ 'size': ['small', false, 'large', 'huge'] }],
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'font': [] }],
+                [{ 'align': [] }],
+                ['clean'],
+                ['link', 'image']
+            ];
 
-            // Load draft
-            loadDraft();
+            quill = new Quill('#editor', {
+                modules: {
+                    toolbar: toolbarOptions
+                },
+                placeholder: 'Write your story...',
+                theme: 'snow'
+            });
 
             // Setup autosave
             quill.on('text-change', () => {
                 clearTimeout(draftTimeout);
                 draftTimeout = setTimeout(saveDraft, AUTOSAVE_DELAY);
             });
-
-            // Setup image upload
-            const imageInput = document.getElementById('imageInput');
-            if (imageInput) {
-                imageInput.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    // Validate file type and size
-                    if (!file.type.startsWith('image/')) {
-                        alert('Please select an image file');
-                        return;
-                    }
-
-                    const preview = document.getElementById('imagePreview');
-                    
-                    try {
-                        // Show preview immediately
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            preview.style.backgroundImage = `url(${e.target.result})`;
-                            preview.style.display = 'block';
-                        };
-                        reader.readAsDataURL(file);
-
-                        // Upload to freeimage.host
-                        const uploadedUrl = await uploadImageToHost(file);
-                        if (uploadedUrl) {
-                            imageUrl = uploadedUrl; // Store the URL for later use
-                            console.log('Image uploaded successfully:', imageUrl);
-                        }
-                    } catch (error) {
-                        console.error('Upload error:', error);
-                        alert(error.message);
-                        preview.style.display = 'none';
-                    }
-                });
-            }
-
-            // Setup theme input
-            const themeInput = document.getElementById('themeInput');
-            if (themeInput) {
-                themeInput.addEventListener('keydown', handleThemeInput);
-            }
         }
 
-        function handleThemeInput(e) {
-            if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault();
-                const value = e.target.value.trim();
-                if (value) {
-                    addTheme(value);
+        function setupThemeHandling() {
+            const themeInput = document.getElementById('themeInput');
+            const themeContainer = document.getElementById('themeTags');
+
+            themeInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.target.value.trim()) {
+                    e.preventDefault();
+                    const theme = e.target.value.trim();
+                    if (!selectedThemes.has(theme)) {
+                        selectedThemes.add(theme);
+                        addThemeTag(theme);
+                    }
                     e.target.value = '';
                 }
-            }
+            });
         }
 
-        // Draft functions
+        function addThemeTag(theme) {
+            const themeContainer = document.getElementById('themeTags');
+            const tag = document.createElement('div');
+            tag.className = 'theme-tag selected';
+            tag.textContent = theme;
+            tag.onclick = () => {
+                selectedThemes.delete(theme);
+                tag.remove();
+                saveDraft();
+            };
+            themeContainer.appendChild(tag);
+        }
+
         function saveDraft() {
             const content = {
                 title: document.getElementById('titleInput').value,
                 content: quill.root.innerHTML,
                 category: document.getElementById('categoryInput').value,
-                themes: Array.from(document.querySelectorAll('.theme-tag.selected'))
-                    .map(tag => tag.textContent),
-                imageUrl,
-                lastSaved: new Date()
+                themes: Array.from(selectedThemes)
             };
 
             localStorage.setItem('blogDraft', JSON.stringify(content));
@@ -399,216 +340,144 @@
                 document.getElementById('titleInput').value = content.title || '';
                 quill.root.innerHTML = content.content || '';
                 document.getElementById('categoryInput').value = content.category || '';
-                content.themes?.forEach(theme => addTheme(theme));
-                if (content.imageUrl) {
-                    imageUrl = content.imageUrl;
-                    const preview = document.getElementById('imagePreview');
-                    preview.style.backgroundImage = `url(${imageUrl})`;
-                    preview.style.display = 'block';
-                }
+                
+                // Load themes
+                selectedThemes = new Set(content.themes || []);
+                const themeContainer = document.getElementById('themeTags');
+                themeContainer.innerHTML = '';
+                selectedThemes.forEach(theme => addThemeTag(theme));
             }
         }
 
         function showSaveIndicator() {
             const indicator = document.getElementById('saveIndicator');
             indicator.classList.add('show');
-            setTimeout(() => indicator.classList.remove('show'), 2000);
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
         }
 
-        // Theme handling
-        function addTheme(theme) {
-            const tagsContainer = document.getElementById('themeTags');
-            const tag = document.createElement('div');
-            tag.className = 'theme-tag';
-            tag.textContent = theme;
-            tag.onclick = () => tag.classList.toggle('selected');
-            tagsContainer.appendChild(tag);
-        }
+        // Make functions available globally
+        window.previewPost = function() {
+            // Save current state
+            saveDraft();
+            // Open preview in new window/tab
+            const previewWindow = window.open('', '_blank');
+            const content = quill.root.innerHTML;
+            const title = document.getElementById('titleInput').value;
+            
+            previewWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <title>Preview - ${title}</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+                        <style>
+                            body { 
+                                font-family: 'Poppins', sans-serif;
+                                max-width: 800px;
+                                margin: 40px auto;
+                                padding: 20px;
+                                line-height: 1.8;
+                            }
+                            h1 { font-size: 2.5rem; margin-bottom: 30px; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>${title}</h1>
+                        ${content}
+                    </body>
+                </html>
+            `);
+        };
 
-        async function uploadImageToHost(file) {
-    const API_KEY = '6d207e02198a847aa98d0a2a901485a5'; // Replace with your actual API key
-    const API_URL = 'https://freeimage.host/api/1/upload';
-    const progress = document.getElementById('uploadProgress');
-    const uploadButton = document.querySelector('.image-upload .action-button');
-
-    try {
-        // Show initial upload progress
-        progress.style.width = '30%';
-        progress.style.display = 'block';
-        uploadButton.disabled = true;
-        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-
-        // Convert file to base64
-        const base64String = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result.split(',')[1]);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-
-        // Prepare form data
-        const formData = new FormData();
-        formData.append('key', API_KEY);
-        formData.append('action', 'upload');
-        formData.append('source', base64String);
-        formData.append('format', 'json');
-
-        // Make API request
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.status_code === 200 && data.image) {
-            progress.style.width = '100%';
-            return data.image.display_url;
-        } else {
-            throw new Error(data.status_txt || 'Upload failed');
-        }
-
-    } catch (error) {
-        console.error('Image upload error:', error);
-        alert('Failed to upload image: ' + error.message);
-        throw error;
-    } finally {
-        // Reset UI elements
-        progress.style.width = '0%';
-        progress.style.display = 'none';
-        uploadButton.disabled = false;
-        uploadButton.innerHTML = '<i class="fas fa-image"></i> Add Cover Image';
-    }
-}
-
-        // Update publish function with session validation
         window.publishPost = async function() {
-            try {
-                // Force refresh ID token
-                await auth.currentUser?.getIdToken(true);
-            } catch (error) {
-                console.log('Session expired, redirecting to login');
-                window.location.href = 'login.html';
+            if (!currentUser) {
+                alert('Please sign in to publish');
                 return;
             }
 
-            const publishBtn = document.getElementById('publishButton');
-            publishBtn.disabled = true;
-            publishBtn.innerHTML = '<span class="loading"></span>';
+            const title = document.getElementById('titleInput').value.trim();
+            const content = quill.root.innerHTML;
+
+            if (!title) {
+                alert('Please enter a title');
+                return;
+            }
+
+            if (!content || content === '<p><br></p>') {
+                alert('Please write some content');
+                return;
+            }
 
             try {
-                if (!quill) {
-                    throw new Error('Editor not initialized');
-                }
+                // Get user profile data
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const userData = userDoc.data();
 
-                const postData = {
-                    title: document.getElementById('titleInput').value,
-                    content: quill.root.innerHTML,
-                    category: document.getElementById('categoryInput').value,
-                    themes: Array.from(document.querySelectorAll('.theme-tag.selected'))
-                        .map(tag => tag.textContent),
-                    image: imageUrl,
-                    authorId: auth.currentUser.uid,
-                    authorName: auth.currentUser.displayName || 'Anonymous',
+                // Create post document
+                const postId = Date.now().toString();
+                await setDoc(doc(db, "posts", postId), {
+                    title,
+                    content,
+                    authorId: currentUser.uid,
+                    authorName: userData.username,
+                    authorAvatar: userData.avatarUrl,
                     timestamp: new Date(),
                     likes: [],
-                    comments: []
-                };
+                    comments: [],
+                    category: document.getElementById('categoryInput').value,
+                    themes: Array.from(selectedThemes)
+                });
 
-                await addDoc(collection(db, "posts"), postData);
-                localStorage.removeItem('blogDraft');
-                window.location.href = 'articles.html';
+                // Redirect to the post
+                window.location.href = `read.html?id=${postId}`;
             } catch (error) {
-                console.error('Publish error:', error);
-                alert('Failed to publish post: ' + error.message);
-            } finally {
-                publishBtn.disabled = false;
-                publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish';
+                console.error("Error publishing post:", error);
+                alert('Error publishing post. Please try again.');
             }
-        };
-
-        // Add error boundary styles
-        const style = document.createElement('style');
-        style.textContent = `
-            .error {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                padding: 20px;
-                background: #fff;
-                border-radius: 8px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                text-align: center;
-                color: #ff4444;
-            }
-        `;
-        document.head.appendChild(style);
+        }
     </script>
 </head>
 <body>
     <div class="write-container">
         <div class="editor-header">
-            <input type="text" class="title-input" placeholder="Title" id="titleInput">
+            <input type="text" id="titleInput" class="title-input" placeholder="Title of your story">
             <div class="meta-inputs">
                 <div class="input-group">
-                    <input type="text" placeholder="Category" id="categoryInput">
+                    <label for="categoryInput">Category</label>
+                    <select id="categoryInput">
+                        <option value="">Select a category</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Food">Food</option>
+                        <option value="Health">Health</option>
+                        <option value="Philosophy">Philosophy</option>
+                    </select>
                 </div>
                 <div class="input-group">
-                    <input type="text" placeholder="Add themes (comma-separated)" id="themeInput">
+                    <label>Themes</label>
+                    <input type="text" id="themeInput" placeholder="Type a theme and press Enter">
+                    <div id="themeTags" class="theme-tags"></div>
                 </div>
-            </div>
-            <div class="theme-tags" id="themeTags"></div>
-            <div class="image-upload">
-                <input type="file" accept="image/*" id="imageInput" style="display: none">
-                <button class="action-button preview-button" onclick="document.getElementById('imageInput').click()">
-                    <i class="fas fa-image"></i> Add Cover Image
-                </button>
-                <div class="image-preview" id="imagePreview"></div>
-                <div class="upload-progress" id="uploadProgress"></div>
             </div>
         </div>
 
         <div id="editor"></div>
 
         <div class="action-buttons">
-            <button class="action-button preview-button" onclick="previewPost()">
+            <button onclick="previewPost()" class="action-button preview-button">
                 <i class="fas fa-eye"></i> Preview
             </button>
-            <button class="action-button publish-button" onclick="publishPost()" id="publishButton">
+            <button onclick="publishPost()" id="publishButton" class="action-button publish-button">
                 <i class="fas fa-paper-plane"></i> Publish
             </button>
         </div>
     </div>
 
-    <div class="preview-modal" id="previewModal">
-        <div class="preview-content" id="previewContent"></div>
-    </div>
+    <div id="saveIndicator" class="save-indicator">Draft saved</div>
 
-    <div class="save-indicator" id="saveIndicator">
-        <i class="fas fa-check"></i> Draft saved
-    </div>
-
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script type="module">
-        function previewPost() {
-            const modal = document.getElementById('previewModal');
-            const content = document.getElementById('previewContent');
-            
-            content.innerHTML = `
-                <h1>${document.getElementById('titleInput').value}</h1>
-                ${quill.root.innerHTML}
-            `;
-            
-            modal.style.display = 'flex';
-            modal.onclick = (e) => {
-                if (e.target === modal) modal.style.display = 'none';
-            };
-        }
-    </script>
+    <<script src="https://cdn.quilljs.com/2.0.3/quill.min.js"></script>
 </body>
 </html>
