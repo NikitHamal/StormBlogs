@@ -227,10 +227,17 @@
     </style>
 
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js';
-        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore.js';
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js';
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            setPersistence,
+            browserLocalPersistence 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // Correct Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
             authDomain: "storm-blogs.firebaseapp.com",
@@ -240,241 +247,125 @@
             appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
-        const auth = getAuth();
 
-        // Check authentication state
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                // Redirect to login if not authenticated
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            // Update user info in header
-            document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
-            document.getElementById('user-avatar').src = user.photoURL || 'profile.jpg';
-            document.getElementById('user-info').style.display = 'flex';
-        });
+        // Global variables
+        let quill;
+        let imageUrl = '';
+        let draftTimeout;
+        const AUTOSAVE_DELAY = 2000;
 
-        // Handle form submission
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("post-form").addEventListener("submit", async function(e) {
-                e.preventDefault();
-                
-                const submitButton = document.getElementById("submit-button");
-                submitButton.disabled = true;
-                submitButton.textContent = "Publishing...";
-
-                try {
-                    const user = auth.currentUser;
-                    if (!user) {
-                        throw new Error("You must be logged in to publish");
-                    }
-
-                    const title = document.getElementById("title").value;
-                    const category = document.getElementById("category").value;
-                    const content = document.getElementById("content").value;
-                    const preview = content.substring(0, 150) + (content.length > 150 ? '...' : '');
-
-                    const newPost = {
-                        title,
-                        category,
-                        content,
-                        preview,
-                        timestamp: Date.now(),
-                        authorId: user.uid,
-                        authorName: user.displayName || user.email.split('@')[0],
-                        authorPhoto: user.photoURL || 'profile.jpg',
-                        likes: 0,
-                        likedBy: [],
-                        comments: [],
-                        featured: false
-                    };
-
-                    await addDoc(collection(db, "posts"), newPost);
-                    showNotification("Post published successfully!");
-                    setTimeout(() => {
-                        window.location.href = "articles.html";
-                    }, 1500);
-
-                } catch (error) {
-                    console.error("Error adding post: ", error);
-                    showNotification("Error publishing post. Please try again.", true);
-                    submitButton.disabled = false;
-                    submitButton.textContent = "Publish Post";
-                }
-            });
-        });
-
-        function showNotification(message, isError = false) {
-            const notification = document.getElementById("notification");
-            notification.textContent = message;
-            notification.style.backgroundColor = isError ? "#ff4444" : "#4CAF50";
-            notification.style.display = "block";
-            setTimeout(() => {
-                notification.style.display = "none";
-            }, 3000);
-        }
-
-        // Add category selection handling
-        document.querySelectorAll('.category-tag').forEach(button => {
-            button.addEventListener('click', () => {
-                // Remove selected class from all buttons
-                document.querySelectorAll('.category-tag').forEach(btn => {
-                    btn.classList.remove('selected');
-                });
-                
-                // Add selected class to clicked button
-                button.classList.add('selected');
-                
-                // Update hidden input
-                document.getElementById('category').value = button.dataset.category;
-            });
-        });
-
-        // Replace the uploadImageToHost function and image input handler
-        async function uploadImageToHost(file) {
-            const API_KEY = '6d207e02198a847aa98d0a2a901485a5';
-            const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
-            const API_URL = CORS_PROXY + 'https://freeimage.host/api/1/upload';
-            const progress = document.getElementById('uploadProgress');
-            const preview = document.getElementById('imagePreview');
-            const uploadButton = document.querySelector('.image-upload .action-button');
-
-            // Define progressInterval in the outer scope
-            let progressInterval = null;
-
+        // Initialize auth with persistence
+        async function initAuth() {
             try {
-                // Start progress animation
-                progress.style.transition = 'width 0.3s ease';
-                progress.style.width = '0%';
-                progress.style.display = 'block';
-
-                // Show loading state
-                uploadButton.disabled = true;
-                uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-
-                // Initialize progress simulation
-                let progressValue = 0;
-                progressInterval = setInterval(() => {
-                    if (progressValue < 90) {
-                        progressValue += 5;
-                        progress.style.width = progressValue + '%';
-                    }
-                }, 500);
-
-                // Create FormData and append file directly
-                const formData = new FormData();
-                formData.append('key', API_KEY);
-                formData.append('action', 'upload');
-                formData.append('source', file);
-                formData.append('format', 'json');
-
-                // Make API request with proper headers
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('Upload response:', data);
-
-                // Clear progress interval
-                if (progressInterval) {
-                    clearInterval(progressInterval);
-                    progressInterval = null;
-                }
-
-                if (data.status_code === 200 && data.image && data.image.url) {
-                    // Complete progress bar
-                    progress.style.width = '100%';
-                    return data.image.url;
-                } else {
-                    throw new Error(data.error?.message || 'Invalid response from server');
-                }
-
+                await setPersistence(auth, browserLocalPersistence);
+                console.log('Auth persistence set to local');
             } catch (error) {
-                console.error('Image upload error:', error);
-                // Reset progress on error
-                progress.style.width = '0%';
-                
-                if (error.message.includes('Failed to fetch')) {
-                    throw new Error('Network error: Please check your internet connection or try again later');
-                }
+                console.error('Failed to set auth persistence:', error);
                 throw error;
-            } finally {
-                // Clear interval if it exists
-                if (progressInterval) {
-                    clearInterval(progressInterval);
-                    progressInterval = null;
-                }
-
-                // Hide progress bar after a delay
-                setTimeout(() => {
-                    progress.style.width = '0%';
-                    progress.style.display = 'none';
-                }, 1000);
-
-                // Reset upload button
-                uploadButton.disabled = false;
-                uploadButton.innerHTML = '<i class="fas fa-image"></i> Add Cover Image';
             }
         }
 
-        // Update the image input handler
-        document.getElementById('imageInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Validate file type and size
-            if (!file.type.startsWith('image/')) {
-                alert('Please select an image file');
-                return;
-            }
-
-            if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                alert('Image size should be less than 10MB');
-                return;
-            }
-
-            const preview = document.getElementById('imagePreview');
-            
+        // Main initialization
+        document.addEventListener('DOMContentLoaded', () => {
             try {
-                // Show preview immediately
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.style.backgroundImage = `url(${e.target.result})`;
-                    preview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-
-                // Upload to freeimage.host
-                const uploadedUrl = await uploadImageToHost(file);
-                
-                if (uploadedUrl) {
-                    imageUrl = uploadedUrl;
-                    console.log('Image uploaded successfully:', imageUrl);
-                }
-
+                initAuth().then(() => {
+                    const unsubscribe = onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            console.log('Authenticated user:', user.email);
+                            initializeEditor();
+                        } else {
+                            console.log('No authenticated user');
+                            window.location.href = 'login.html';
+                        }
+                        unsubscribe();
+                    });
+                });
             } catch (error) {
-                console.error('Upload error:', error);
-                alert(error.message || 'Failed to upload image');
-                preview.style.display = 'none';
+                console.error('Auth initialization failed:', error);
+                document.body.innerHTML = `
+                    <div class="error">
+                        Error initializing application. Please refresh.
+                    </div>`;
             }
         });
 
-        // Handle themes
-        document.getElementById('themeInput').addEventListener('keydown', (e) => {
+        function initializeEditor() {
+            // Initialize Quill
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                placeholder: 'Start writing your story...',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        ['blockquote', 'code-block'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ]
+                }
+            });
+
+            // Load draft
+            loadDraft();
+
+            // Setup autosave
+            quill.on('text-change', () => {
+                clearTimeout(draftTimeout);
+                draftTimeout = setTimeout(saveDraft, AUTOSAVE_DELAY);
+            });
+
+            // Setup image upload
+            const imageInput = document.getElementById('imageInput');
+            if (imageInput) {
+                imageInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    // Validate file type and size
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please select an image file');
+                        return;
+                    }
+
+                    const preview = document.getElementById('imagePreview');
+                    
+                    try {
+                        // Show preview immediately
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            preview.style.backgroundImage = `url(${e.target.result})`;
+                            preview.style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+
+                        // Upload to freeimage.host
+                        const uploadedUrl = await uploadImageToHost(file);
+                        if (uploadedUrl) {
+                            imageUrl = uploadedUrl; // Store the URL for later use
+                            console.log('Image uploaded successfully:', imageUrl);
+                        }
+                    } catch (error) {
+                        console.error('Upload error:', error);
+                        alert(error.message);
+                        preview.style.display = 'none';
+                    }
+                });
+            }
+
+            // Setup theme input
+            const themeInput = document.getElementById('themeInput');
+            if (themeInput) {
+                themeInput.addEventListener('keydown', handleThemeInput);
+            }
+        }
+
+        function handleThemeInput(e) {
             if (e.key === 'Enter' || e.key === ',') {
                 e.preventDefault();
                 const value = e.target.value.trim();
@@ -483,18 +374,10 @@
                     e.target.value = '';
                 }
             }
-        });
-
-        function addTheme(theme) {
-            const tagsContainer = document.getElementById('themeTags');
-            const tag = document.createElement('div');
-            tag.className = 'theme-tag';
-            tag.textContent = theme;
-            tag.onclick = () => tag.classList.toggle('selected');
-            tagsContainer.appendChild(tag);
         }
 
-        async function saveDraft() {
+        // Draft functions
+        function saveDraft() {
             const content = {
                 title: document.getElementById('titleInput').value,
                 content: quill.root.innerHTML,
@@ -532,29 +415,94 @@
             setTimeout(() => indicator.classList.remove('show'), 2000);
         }
 
-        function previewPost() {
-            const modal = document.getElementById('previewModal');
-            const content = document.getElementById('previewContent');
-            
-            content.innerHTML = `
-                <h1>${document.getElementById('titleInput').value}</h1>
-                ${quill.root.innerHTML}
-            `;
-            
-            modal.style.display = 'flex';
-            modal.onclick = (e) => {
-                if (e.target === modal) modal.style.display = 'none';
-            };
+        // Theme handling
+        function addTheme(theme) {
+            const tagsContainer = document.getElementById('themeTags');
+            const tag = document.createElement('div');
+            tag.className = 'theme-tag';
+            tag.textContent = theme;
+            tag.onclick = () => tag.classList.toggle('selected');
+            tagsContainer.appendChild(tag);
         }
 
-        async function publishPost() {
+        async function uploadImageToHost(file) {
+    const API_KEY = '6d207e02198a847aa98d0a2a901485a5'; // Replace with your actual API key
+    const API_URL = 'https://freeimage.host/api/1/upload';
+    const progress = document.getElementById('uploadProgress');
+    const uploadButton = document.querySelector('.image-upload .action-button');
+
+    try {
+        // Show initial upload progress
+        progress.style.width = '30%';
+        progress.style.display = 'block';
+        uploadButton.disabled = true;
+        uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+        // Convert file to base64
+        const base64String = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('key', API_KEY);
+        formData.append('action', 'upload');
+        formData.append('source', base64String);
+        formData.append('format', 'json');
+
+        // Make API request
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.status_code === 200 && data.image) {
+            progress.style.width = '100%';
+            return data.image.display_url;
+        } else {
+            throw new Error(data.status_txt || 'Upload failed');
+        }
+
+    } catch (error) {
+        console.error('Image upload error:', error);
+        alert('Failed to upload image: ' + error.message);
+        throw error;
+    } finally {
+        // Reset UI elements
+        progress.style.width = '0%';
+        progress.style.display = 'none';
+        uploadButton.disabled = false;
+        uploadButton.innerHTML = '<i class="fas fa-image"></i> Add Cover Image';
+    }
+}
+
+        // Update publish function with session validation
+        window.publishPost = async function() {
+            try {
+                // Force refresh ID token
+                await auth.currentUser?.getIdToken(true);
+            } catch (error) {
+                console.log('Session expired, redirecting to login');
+                window.location.href = 'login.html';
+                return;
+            }
+
             const publishBtn = document.getElementById('publishButton');
             publishBtn.disabled = true;
             publishBtn.innerHTML = '<span class="loading"></span>';
 
             try {
-                if (!document.getElementById('titleInput').value.trim()) {
-                    throw new Error('Please enter a title');
+                if (!quill) {
+                    throw new Error('Editor not initialized');
                 }
 
                 const postData = {
@@ -563,9 +511,9 @@
                     category: document.getElementById('categoryInput').value,
                     themes: Array.from(document.querySelectorAll('.theme-tag.selected'))
                         .map(tag => tag.textContent),
-                    image: imageUrl, // Use the uploaded image URL
+                    image: imageUrl,
                     authorId: auth.currentUser.uid,
-                    authorName: auth.currentUser.displayName,
+                    authorName: auth.currentUser.displayName || 'Anonymous',
                     timestamp: new Date(),
                     likes: [],
                     comments: []
@@ -574,15 +522,32 @@
                 await addDoc(collection(db, "posts"), postData);
                 localStorage.removeItem('blogDraft');
                 window.location.href = 'articles.html';
-
             } catch (error) {
                 console.error('Publish error:', error);
-                alert(error.message || 'Failed to publish post');
+                alert('Failed to publish post: ' + error.message);
             } finally {
                 publishBtn.disabled = false;
                 publishBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish';
             }
-        }
+        };
+
+        // Add error boundary styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .error {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                padding: 20px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                text-align: center;
+                color: #ff4444;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </head>
 <body>
@@ -630,38 +595,20 @@
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script type="module">
-        let quill;
-        let imageUrl = '';
-        let draftTimeout;
-        const AUTOSAVE_DELAY = 2000;
-
-        // Initialize Quill editor
-        document.addEventListener('DOMContentLoaded', () => {
-            quill = new Quill('#editor', {
-                theme: 'snow',
-                placeholder: 'Start writing your story...',
-                modules: {
-                    toolbar: [
-                        [{ 'header': [1, 2, 3, false] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        ['blockquote', 'code-block'],
-                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                        [{ 'align': [] }],
-                        ['link', 'image'],
-                        ['clean']
-                    ]
-                }
-            });
-
-            // Load draft if exists
-            loadDraft();
-
-            // Setup autosave
-            quill.on('text-change', () => {
-                clearTimeout(draftTimeout);
-                draftTimeout = setTimeout(saveDraft, AUTOSAVE_DELAY);
-            });
-        });
+        function previewPost() {
+            const modal = document.getElementById('previewModal');
+            const content = document.getElementById('previewContent');
+            
+            content.innerHTML = `
+                <h1>${document.getElementById('titleInput').value}</h1>
+                ${quill.root.innerHTML}
+            `;
+            
+            modal.style.display = 'flex';
+            modal.onclick = (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            };
+        }
     </script>
 </body>
 </html>
