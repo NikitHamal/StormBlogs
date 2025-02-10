@@ -208,7 +208,183 @@
       if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
       return `${seconds} second${seconds > 1 ? 's' : ''}`;
     }
+
+    function renderArticle(data) {
+        // Set category
+        document.getElementById('articleCategory').textContent = data.category || '';
+        
+        // Set title
+        document.getElementById('articleTitle').textContent = data.title;
+        
+        // Set author and date
+        document.getElementById('authorName').textContent = data.authorName || 'Anonymous';
+        document.getElementById('publishDate').textContent = new Date(data.timestamp.toDate()).toLocaleDateString();
+        
+        // Set content
+        const contentDiv = document.getElementById('articleContent');
+        contentDiv.innerHTML = data.content;
+
+        // Render tags
+        const tagsContainer = document.getElementById('articleTags');
+        tagsContainer.innerHTML = '';
+        if (data.themes && data.themes.length > 0) {
+            data.themes.forEach(theme => {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.textContent = theme;
+                tagsContainer.appendChild(tag);
+            });
+        }
+
+        // Set like count
+        const likeCount = document.getElementById('likeCount');
+        likeCount.textContent = data.likes ? data.likes.length : 0;
+
+        // Set comment count
+        const commentCount = document.getElementById('commentCount');
+        commentCount.textContent = data.comments ? data.comments.length : 0;
+
+        // Update like button state
+        const likeButton = document.getElementById('likeButton');
+        if (auth.currentUser && data.likes && data.likes.includes(auth.currentUser.uid)) {
+            likeButton.querySelector('i').classList.remove('far');
+            likeButton.querySelector('i').classList.add('fas');
+        }
+    }
   </script>
+
+  <style>
+    .article-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 30px;
+        max-height: 100%; /* Remove any height restrictions */
+    }
+
+    /* Quill content styling */
+    .ql-editor {
+        padding: 0;
+        white-space: pre-wrap; /* Preserve whitespace and wrapping */
+    }
+
+    .ql-editor p {
+        margin: 0 0 1.2em 0; /* Add proper paragraph spacing */
+    }
+
+    .ql-editor h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor blockquote {
+        border-left: 3px solid #ccc;
+        margin: 1.5em 0;
+        padding: 0.5em 0 0.5em 1em; /* Adjusted padding */
+        font-size: 1.1rem;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .ql-editor ul,
+    .ql-editor ol {
+        margin: 0 0 1.2em 0;
+        padding-left: 1.5em;
+    }
+
+    .ql-editor li {
+        margin-bottom: 0.5em;
+    }
+
+    .ql-editor em {
+        font-style: italic;
+    }
+
+    .ql-editor strong {
+        font-weight: 600;
+    }
+
+    .ql-editor u {
+        text-decoration: underline;
+    }
+
+    .ql-editor pre {
+        background: #f5f5f5;
+        padding: 1em;
+        border-radius: 4px;
+        margin: 1.2em 0;
+        overflow-x: auto;
+    }
+
+    .ql-editor code {
+        background: #f5f5f5;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-size: 0.9em;
+        font-family: monospace;
+    }
+
+    /* Ensure proper spacing between different content types */
+    .ql-editor > * + * {
+        margin-top: 1em;
+    }
+
+    /* Adjust container padding */
+    .article-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 40px; /* Increased padding */
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Improve readability with max-width for text */
+    .article-content {
+        max-width: 680px;
+        margin: 0 auto 30px;
+    }
+
+    @media (max-width: 768px) {
+        .article-container {
+            margin: 0;
+            padding: 20px;
+            border-radius: 0;
+        }
+
+        .article-content {
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .ql-editor h1 {
+            font-size: 1.6rem;
+        }
+
+        .ql-editor h2 {
+            font-size: 1.4rem;
+        }
+
+        .ql-editor h3 {
+            font-size: 1.2rem;
+        }
+    }
+  </style>
 
 </head>
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333; scroll-behavior: smooth;">

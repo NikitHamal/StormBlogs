@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            background: #faf8f7;
+            min-height: 100vh;
+        }
+
+        .profile-setup {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .setup-step {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .setup-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .setup-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .setup-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        .social-inputs {
+            display: grid;
+            gap: 15px;
+        }
+
+        .social-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+        }
+
+        .social-input i {
+            color: #666;
+            width: 20px;
+        }
+
+        .social-input input {
+            border: none;
+            padding: 0;
+            width: 100%;
+        }
+
+        .social-input input:focus {
+            outline: none;
+        }
+
+        .btn {
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #444;
+        }
+
+        .btn-outline {
+            background: none;
+            border: 2px solid #333;
+            color: #333;
+        }
+
+        .btn-outline:hover {
+            background: #333;
+            color: white;
+        }
+
+        .setup-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        /* Profile Display Styles */
+        .profile-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: none;
+        }
+
+        .profile-header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #666;
+        }
+
+        .profile-details {
+            flex-grow: 1;
+        }
+
+        .profile-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .verified-badge {
+            color: #1DA1F2;
+            font-size: 1.2rem;
+        }
+
+        .profile-bio {
+            color: #666;
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .profile-social {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            color: #666;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .social-link:hover {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .profile-setup,
+            .profile-header {
+                padding: 20px;
+                margin: 20px;
+            }
+
+            .profile-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-stats {
+                justify-content: center;
+            }
+
+            .profile-social {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Profile Setup Form -->
+    <div class="profile-setup" id="profileSetup">
+        <div class="setup-step active" data-step="1">
+            <div class="setup-header">
+                <h2 class="setup-title">Welcome to StormBlogs!</h2>
+                <p class="setup-subtitle">Let's set up your profile</p>
+            </div>
+            <div class="input-group">
+                <label for="username">Choose a username</label>
+                <input type="text" id="username" placeholder="e.g., stormwriter">
+            </div>
+            <div class="input-group">
+                <label for="bio">Tell us about yourself</label>
+                <textarea id="bio" rows="3" placeholder="Share a brief bio..."></textarea>
+            </div>
+            <div class="setup-buttons">
+                <button class="btn" onclick="nextStep()">Continue</button>
+            </div>
+        </div>
+
+        <div class="setup-step" data-step="2">
+            <div class="setup-header">
+                <h2 class="setup-title">Personal Details</h2>
+                <p class="setup-subtitle">Help us know you better</p>
+            </div>
+            <div class="input-group">
+                <label for="dob">Date of Birth</label>
+                <input type="date" id="dob">
+            </div>
+            <div class="input-group">
+                <label>Social Media (Optional)</label>
+                <div class="social-inputs">
+                    <div class="social-input">
+                        <i class="fab fa-twitter"></i>
+                        <input type="text" placeholder="Twitter username">
+                    </div>
+                    <div class="social-input">
+                        <i class="fab fa-instagram"></i>
+                        <input type="text" placeholder="Instagram username">
+                    </div>
+                    <div class="social-input">
+                        <i class="fab fa-linkedin"></i>
+                        <input type="text" placeholder="LinkedIn profile">
+                    </div>
+                </div>
+            </div>
+            <div class="setup-buttons">
+                <button class="btn btn-outline" onclick="prevStep()">Back</button>
+                <button class="btn" onclick="completeSetup()">Complete Setup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Display -->
+    <div class="profile-container" id="profileDisplay">
+        <div class="profile-header">
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="profile-details">
+                    <h1 class="profile-name">
+                        <span id="displayName">Username</span>
+                        <i class="fas fa-check-circle verified-badge" id="verifiedBadge"></i>
+                    </h1>
+                    <p class="profile-bio" id="displayBio">Loading bio...</p>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="postsCount">0</div>
+                            <div class="stat-label">Posts</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="followersCount">0</div>
+                            <div class="stat-label">Followers</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="followingCount">0</div>
+                            <div class="stat-label">Following</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="likesCount">0</div>
+                            <div class="stat-label">Likes</div>
+                        </div>
+                    </div>
+                    <div class="profile-social" id="socialLinks">
+                        <!-- Social links will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentStep = 1;
+
+        // Make generateAvatar available globally
+        window.generateAvatar = function(username) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 200;
+
+            // Get initials
+            const initials = username
+                .split(' ')
+                .map(word => word[0])
+                .join('')
+                .toUpperCase()
+                .substring(0, 2);
+
+            // Generate color based on username
+            const hue = Math.abs(username.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360);
+            const backgroundColor = `hsl(${hue}, 60%, 80%)`;
+            const textColor = `hsl(${hue}, 30%, 20%)`;
+
+            // Draw background
+            context.fillStyle = backgroundColor;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw text
+            context.fillStyle = textColor;
+            context.font = 'bold 100px Poppins, sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(initials, canvas.width/2, canvas.height/2);
+
+            return canvas.toDataURL('image/png');
+        };
+
+        // Make other functions global as well
+        window.nextStep = () => {
+            const currentStepEl = document.querySelector(`.setup-step[data-step="${currentStep}"]`);
+            currentStepEl.classList.remove('active');
+            currentStep++;
+            const nextStepEl = document.querySelector(`.setup-step[data-step="${currentStep}"]`);
+            nextStepEl.classList.add('active');
+        };
+
+        window.prevStep = () => {
+            const currentStepEl = document.querySelector(`.setup-step[data-step="${currentStep}"]`);
+            currentStepEl.classList.remove('active');
+            currentStep--;
+            const prevStepEl = document.querySelector(`.setup-step[data-step="${currentStep}"]`);
+            prevStepEl.classList.add('active');
+        };
+
+        window.completeSetup = async () => {
+            const username = document.getElementById('username').value;
+            const userData = {
+                username,
+                avatarUrl: window.generateAvatar(username), // Use window.generateAvatar
+                bio: document.getElementById('bio').value,
+                dob: document.getElementById('dob').value,
+                social: {
+                    twitter: document.querySelector('.social-input:nth-child(1) input').value,
+                    instagram: document.querySelector('.social-input:nth-child(2) input').value,
+                    linkedin: document.querySelector('.social-input:nth-child(3) input').value
+                },
+                verified: false,
+                followers: [],
+                following: [],
+                likes: [],
+                createdAt: new Date()
+            };
+
+            try {
+                await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+                document.getElementById('profileSetup').style.display = 'none';
+                loadProfile();
+            } catch (error) {
+                console.error("Error saving profile:", error);
+                alert("Error saving profile. Please try again.");
+            }
+        };
+
+        // Initialize first step
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector('.setup-step[data-step="1"]').classList.add('active');
+        });
+
+        async function loadProfile() {
+            const profileDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+            if (profileDoc.exists()) {
+                const data = profileDoc.data();
+                document.getElementById('profileSetup').style.display = 'none';
+                document.getElementById('profileDisplay').style.display = 'block';
+                
+                // Update profile display
+                document.getElementById('displayName').textContent = data.username;
+                document.getElementById('displayBio').textContent = data.bio;
+                document.getElementById('verifiedBadge').style.display = data.verified ? 'inline' : 'none';
+                
+                // Update stats
+                document.getElementById('followersCount').textContent = data.followers?.length || 0;
+                document.getElementById('followingCount').textContent = data.following?.length || 0;
+                document.getElementById('likesCount').textContent = data.likes?.length || 0;
+
+                // Add social links
+                const socialLinks = document.getElementById('socialLinks');
+                socialLinks.innerHTML = '';
+                if (data.social.twitter) {
+                    socialLinks.innerHTML += `<a href="https://twitter.com/${data.social.twitter}" class="social-link"><i class="fab fa-twitter"></i></a>`;
+                }
+                if (data.social.instagram) {
+                    socialLinks.innerHTML += `<a href="https://instagram.com/${data.social.instagram}" class="social-link"><i class="fab fa-instagram"></i></a>`;
+                }
+                if (data.social.linkedin) {
+                    socialLinks.innerHTML += `<a href="${data.social.linkedin}" class="social-link"><i class="fab fa-linkedin"></i></a>`;
+                }
+
+                // Load user's posts count
+                // Add your posts loading logic here
+            } else {
+                document.getElementById('profileSetup').style.display = 'block';
+                document.getElementById('profileDisplay').style.display = 'none';
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadProfile();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html> 
