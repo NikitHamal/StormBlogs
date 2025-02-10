@@ -316,14 +316,6 @@ function createDefinitionTooltip(x, y) {
         return tooltip;
     }
 
-// Rate limiting
-let lastRequest = 0;
-document.addEventListener('dblclick', async (event) => {
-    if (Date.now() - lastRequest < 2000) return;
-    lastRequest = Date.now();
-    // ... rest of the code
-});
-
 // Keyboard shortcut support
 document.addEventListener('keydown', (e) => {
     if (e.altKey && e.key === 'd') {
