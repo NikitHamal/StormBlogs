@@ -138,31 +138,45 @@ function truncateContext(text, maxLength = 30000) {
     }
 };
 
-    window.appendMessage = (type, content) => {
-        const chatMessages = document.getElementById('chatMessages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `chat-message ${type}-message`;
-        
-        if (type === 'typing') {
-            messageDiv.innerHTML = `
-                <div class="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            `;
-        } else {
-            messageDiv.innerHTML = `
-                <div class="message-content">
-                    ${type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>'}
-                    <p>${content}</p>
-                </div>
-            `;
-        }
-        
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    };
+    // Add this formatting function
+window.formatAIReponse = (text) => {
+    // Convert markdown-like syntax to HTML
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/(\d+\.\s+.*(\n|$))/g, '<ol><li>$1</li></ol>')
+        .replace(/-\s+(.*)(\n|$)/g, '<ul><li>$1</li></ul>')
+        .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>')
+        .replace(/\n/g, '<br>');
+};
+
+// Update appendMessage function
+window.appendMessage = (type, content) => {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${type}-message`;
+    
+    if (type === 'typing') {
+        messageDiv.innerHTML = `
+            <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+    } else {
+        const formattedContent = type === 'ai' ? formatAIReponse(content) : content;
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                ${type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>'}
+                <div>${formattedContent}</div>
+            </div>
+        `;
+    }
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+};
 
     window.removeTypingIndicator = () => {
         const typingIndicator = document.querySelector('.typing-indicator')?.parentElement;
@@ -297,13 +311,6 @@ function createDefinitionTooltip(x, y) {
     return tooltip;
 }
 
-// Rate limiting
-let lastRequest = 0;
-document.addEventListener('dblclick', async (event) => {
-    if (Date.now() - lastRequest < 2000) return;
-    lastRequest = Date.now();
-    // ... rest of the code
-});
 
 // Keyboard shortcut support
 document.addEventListener('keydown', (e) => {
@@ -502,27 +509,22 @@ document.addEventListener('click', (e) => {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     padding: 16px;
     max-width: 300px;
+    max-height: 60vh; /* Add max height */
+    overflow-y: auto; /* Enable vertical scroll */
     z-index: 1000;
+    transform: translate(-50%, 20px); /* Position below selection */
+    pointer-events: none; /* Allow clicks through tooltip */
 }
 
-.definition-card h4 {
-    margin: 0 0 8px 0;
-    color: #2c3e50;
-}
-
-.definition-content {
-    font-size: 0.9em;
-    line-height: 1.5;
+.definition-card {
+    pointer-events: auto; /* Enable interactions inside */
 }
 
 .close-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
 }
 
 .loading {
