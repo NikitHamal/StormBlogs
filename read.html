@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -152,11 +152,10 @@ function truncateContext(text, maxLength = 30000) {
                 </div>
             `;
         } else {
-            const formattedContent = type === 'ai' ? formatResponse(content) : content;
             messageDiv.innerHTML = `
                 <div class="message-content">
                     ${type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>'}
-                    <p>${formattedContent}</p>
+                    <p>${content}</p>
                 </div>
             `;
         }
@@ -287,35 +286,24 @@ window.handleChatInput = (e) => {
 });
 
 function createDefinitionTooltip(x, y) {
-    // Add temporary measurements
-    const tempTooltip = document.createElement('div');
-    tempTooltip.className = 'definition-tooltip';
-    tempTooltip.style.visibility = 'hidden';
-    tempTooltip.innerHTML = '<div style="padding: 20px">Measure</div>';
-    document.body.appendChild(tempTooltip);
-    
-    // Get dynamic measurements
-    const tooltipWidth = tempTooltip.offsetWidth;
-    const tooltipHeight = tempTooltip.offsetHeight;
-    tempTooltip.remove();
+    const existingTooltip = document.querySelector('.definition-tooltip');
+    if (existingTooltip) existingTooltip.remove();
 
-    // Rest of positioning logic using dynamic measurements
-    let left = x + 20;
-    let top = y + 20;
+    const tooltip = document.createElement('div');
+    tooltip.className = 'definition-tooltip';
+    tooltip.style.left = `${x + 15}px`;
+    tooltip.style.top = `${y + 15}px`;
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
 
-        if (left + tooltipWidth > viewportWidth) {
-            left = x - tooltipWidth - 20;
-        }
-        if (top + tooltipHeight > viewportHeight) {
-            top = y - tooltipHeight - 20;
-        }
-
-        tooltip.style.left = `${left}px`;
-        tooltip.style.top = `${top}px`;
-        
-        document.body.appendChild(tooltip);
-        return tooltip;
-    }
+// Rate limiting
+let lastRequest = 0;
+document.addEventListener('dblclick', async (event) => {
+    if (Date.now() - lastRequest < 2000) return;
+    lastRequest = Date.now();
+    // ... rest of the code
+});
 
 // Keyboard shortcut support
 document.addEventListener('keydown', (e) => {
@@ -332,18 +320,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
- function formatResponse(text) {
-        return text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-            .replace(/(^|\n)(-|\*|\d+\.)\s+(.*)/g, (match, p1, p2, p3) => {
-                const tag = (p2.match(/\d+\./)) ? 'ol' : 'ul';
-                return `${p1}<${tag}><li>${p3}</li></${tag}>`;
-            })
-            .replace(/\n/g, '<br>')
-            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
-    }
 
     async function loadComments() {
         const docRef = doc(db, "posts", postId);
@@ -518,33 +494,25 @@ document.addEventListener('click', (e) => {
 
   <style>
 
-    .definition-tooltip {
-        max-width: 350px;
-        max-height: 70vh;
-        overflow-y: auto;
-        padding: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        border: none;
-        line-height: 1.6;
-    }
-
-    .definition-content {
-        font-size: 0.95em;
-    }
-
-    .definition-content strong {
-        color: #2c3e50;
-        font-weight: 600;
-    }
-
-    .definition-content em {
-        font-style: italic;
-        color: #666;
-    }
+.definition-tooltip {
+    position: fixed;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 16px;
+    max-width: 300px;
+    z-index: 1000;
+}
 
 .definition-card h4 {
     margin: 0 0 8px 0;
     color: #2c3e50;
+}
+
+.definition-content {
+    font-size: 0.9em;
+    line-height: 1.5;
 }
 
 .close-btn {
@@ -570,27 +538,6 @@ document.addEventListener('click', (e) => {
         margin-bottom: 30px;
         max-height: 100%; /* Remove any height restrictions */
     }
-    
-        .definition-tooltip {
-        animation: tooltipFadeIn 0.3s ease-out;
-        max-height: 60vh;
-        overflow-y: auto;
-        pointer-events: auto;
-    }
-
-    @keyframes tooltipFadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .chat-message {
-        animation: messageSlideIn 0.3s ease-out;
-    }
-
-    @keyframes messageSlideIn {
-        from { opacity: 0; transform: translateX(-20px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
 
     /* Quill content styling */
     .ql-editor {
@@ -601,70 +548,6 @@ document.addEventListener('click', (e) => {
     .ql-editor p {
         margin: 0 0 1.2em 0; /* Add proper paragraph spacing */
     }
-
-    .message-content p {
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-    }
-
-    .message-content strong {
-        font-weight: 600;
-        color: #2c3e50;
-    }
-
-    .message-content em {
-        font-style: italic;
-        color: #666;
-    }
-
-    .message-content ul,
-    .message-content ol {
-        padding-left: 20px;
-        margin: 0.5em 0;
-    }
-
-    .message-content li {
-        margin-bottom: 0.3em;
-    }
-
-    .message-content a {
-        color: #2980b9;
-        text-decoration: underline;
-    }
-
-    .message-content code {
-        background: #f3f3f3;
-        padding: 2px 4px;
-        border-radius: 4px;
-        font-family: monospace;
-    }
-
-    .message-content pre {
-        background: #f8f8f8;
-        padding: 10px;
-        border-radius: 8px;
-        overflow-x: auto;
-        margin: 1em 0;
-    }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-    
 
     .ql-editor h1 {
         font-size: 1.8rem;
