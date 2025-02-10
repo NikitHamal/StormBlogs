@@ -287,20 +287,21 @@ window.handleChatInput = (e) => {
 });
 
 function createDefinitionTooltip(x, y) {
-        const existingTooltip = document.querySelector('.definition-tooltip');
-        if (existingTooltip) existingTooltip.remove();
+    // Add temporary measurements
+    const tempTooltip = document.createElement('div');
+    tempTooltip.className = 'definition-tooltip';
+    tempTooltip.style.visibility = 'hidden';
+    tempTooltip.innerHTML = '<div style="padding: 20px">Measure</div>';
+    document.body.appendChild(tempTooltip);
+    
+    // Get dynamic measurements
+    const tooltipWidth = tempTooltip.offsetWidth;
+    const tooltipHeight = tempTooltip.offsetHeight;
+    tempTooltip.remove();
 
-        const tooltip = document.createElement('div');
-        tooltip.className = 'definition-tooltip';
-        
-        // Position logic
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        const tooltipWidth = 350;
-        const tooltipHeight = 200;
-
-        let left = x + 20;
-        let top = y + 20;
+    // Rest of positioning logic using dynamic measurements
+    let left = x + 20;
+    let top = y + 20;
 
         if (left + tooltipWidth > viewportWidth) {
             left = x - tooltipWidth - 20;
