@@ -11,7 +11,8 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
     
     // Firebase configuration
     const firebaseConfig = {
@@ -26,26 +27,169 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth();
+    let currentUser = null;
+
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (user) {
+            checkUserLike();
+        }
+    });
 
     // Fetch the post from Firestore
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get('id');
     console.log("Post ID from URL:", postId);
 
-    getDoc(doc(db, "posts", postId)).then(docSnap => {
-      if (docSnap.exists()) {
-        const post = docSnap.data();
-        console.log("Post data:", post);
+    async function loadPost() {
+        if (!postId) {
+            console.error("No post ID provided");
+            document.getElementById("article-content").innerHTML = "<p>Article not found</p>";
+            return;
+        }
 
-        // Update page content
-        document.getElementById("article-title").textContent = post.title;
-        document.getElementById("article-title-b").textContent = post.title;
-        document.getElementById("article-category").textContent = post.category;
-        document.getElementById("article-time").textContent = formatTimeAgo(Date.now() - post.timestamp);
-        document.getElementById("article-body").innerHTML = post.content
-          .split("\n")
-          .map(line => `<p>${line}</p>`)
-          .join("");
+        const docRef = doc(db, "posts", postId);
+        try {
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const post = docSnap.data();
+                
+                // Update page content
+                document.getElementById("article-title").textContent = post.title;
+                document.getElementById("article-title-b").textContent = post.title;
+                document.getElementById("article-category").textContent = post.category;
+                document.getElementById("article-time").textContent = formatTimeAgo(Date.now() - post.timestamp);
+                
+                // Format content
+                const formattedContent = post.content
+                    .split('\n')
+                    .map(paragraph => paragraph.trim())
+                    .filter(paragraph => paragraph.length > 0)
+                    .map(paragraph => `<p style="margin-bottom: 1em;">${paragraph}</p>`)
+                    .join('');
+                
+                document.getElementById("article-body").innerHTML = formattedContent;
+
+                // Update like count
+                document.getElementById("like-count").textContent = post.likes || 0;
+                
+                // Check if user has liked the post
+                if (currentUser) {
+                    const likedBy = post.likedBy || [];
+                    if (likedBy.includes(currentUser.uid)) {
+                        document.querySelector('#like-btn i').classList.remove('far');
+                        document.querySelector('#like-btn i').classList.add('fas');
+                    }
+                }
+
+                // Load comments
+                await loadComments();
+            }
+        } catch (error) {
+            console.error("Error loading post:", error);
+            document.getElementById("article-content").innerHTML = "<p>Error loading article</p>";
+        }
+    }
+
+    async function loadComments() {
+        const docRef = doc(db, "posts", postId);
+        const docSnap = await getDoc(docRef);
+        const post = docSnap.data();
+        const comments = post.comments || [];
+        
+        const commentsHtml = comments.map(comment => `
+            <div style="background: #f8f8f8; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <img src="${comment.userPhotoURL || 'profile.jpg'}" alt="Profile" 
+                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        <strong>${comment.userName}</strong>
+                    </div>
+                    <span style="color: #666; font-size: 0.9em;">${formatTimeAgo(Date.now() - comment.timestamp)}</span>
+                </div>
+                <p style="margin: 0; line-height: 1.5;">${comment.text}</p>
+            </div>
+        `).join('');
+        
+        document.getElementById('comments-list').innerHTML = commentsHtml;
+        document.getElementById("comment-count").textContent = comments.length;
+    }
+
+    // Modify like button handler
+    document.getElementById('like-btn').addEventListener('click', async () => {
+        if (!currentUser) {
+            alert('Please login to like posts');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const postRef = doc(db, "posts", postId);
+        const postDoc = await getDoc(postRef);
+        const likedBy = postDoc.data().likedBy || [];
+        
+        try {
+            if (likedBy.includes(currentUser.uid)) {
+                // Unlike
+                await updateDoc(postRef, {
+                    likes: increment(-1),
+                    likedBy: arrayRemove(currentUser.uid)
+                });
+                document.querySelector('#like-btn i').classList.remove('fas');
+                document.querySelector('#like-btn i').classList.add('far');
+            } else {
+                // Like
+                await updateDoc(postRef, {
+                    likes: increment(1),
+                    likedBy: arrayUnion(currentUser.uid)
+                });
+                document.querySelector('#like-btn i').classList.remove('far');
+                document.querySelector('#like-btn i').classList.add('fas');
+            }
+            // Refresh post data
+            await loadPost();
+        } catch (error) {
+            console.error("Error updating like:", error);
+            alert('Error updating like. Please try again.');
+        }
+    });
+
+    // Modify comment submission
+    document.getElementById('submit-comment').addEventListener('click', async () => {
+        if (!currentUser) {
+            alert('Please login to comment');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const comment = document.getElementById('comment-input').value;
+        if (!comment.trim()) return;
+        
+        try {
+            const postRef = doc(db, "posts", postId);
+            await updateDoc(postRef, {
+                comments: arrayUnion({
+                    text: comment,
+                    timestamp: Date.now(),
+                    userId: currentUser.uid,
+                    userName: currentUser.displayName || currentUser.email.split('@')[0],
+                    userPhotoURL: currentUser.photoURL
+                })
+            });
+            
+            document.getElementById('comment-input').value = '';
+            // Refresh comments immediately
+            await loadComments();
+        } catch (error) {
+            console.error("Error posting comment:", error);
+            alert('Error posting comment. Please try again.');
+        }
+    });
+
+    // Initial load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPost();
+    });
 
     function formatTimeAgo(milliseconds) {
       const seconds = Math.floor(milliseconds / 1000);
@@ -96,6 +240,31 @@
         <span style="font-weight: 500; font-size: 18px; margin-right:12px;">Nikit Hamal</span>
         <i class="far fa-clock" style="margin-right: 5px;"></i>
         <span id="article-time" style="font-size:14px;"></span>
+      </div>
+
+      <!-- Like and Comment Section -->
+      <div style="margin-top: 32px; border-top: 1px solid #ddd; padding-top: 16px;">
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <button id="like-btn" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border: none; background: #f0f0f0; border-radius: 20px; cursor: pointer;">
+            <i class="far fa-heart"></i>
+            <span id="like-count">0</span>
+          </button>
+          <button id="comment-btn" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border: none; background: #f0f0f0; border-radius: 20px; cursor: pointer;">
+            <i class="far fa-comment"></i>
+            <span id="comment-count">0</span>
+          </button>
+        </div>
+        
+        <!-- Comment Form -->
+        <div id="comment-section" style="margin-top: 16px;">
+          <textarea id="comment-input" placeholder="Write a comment..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 8px; font-family: 'Poppins', serif;"></textarea>
+          <button id="submit-comment" style="padding: 8px 16px; background-color: #111111; color: white; border: none; border-radius: 20px; cursor: pointer;">
+            Post Comment
+          </button>
+        </div>
+        
+        <!-- Comments List -->
+        <div id="comments-list" style="margin-top: 24px;"></div>
       </div>
     </div>
   </main>
