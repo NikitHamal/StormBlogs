@@ -491,7 +491,6 @@
                     // Upload to Freeimage.host
                     const response = await fetch('https://freeimage.host/api/1/upload', {
                         method: 'POST',
-                        mode: 'no-cors', // Add this line
                         headers: {
                             'Content-Type': 'application/json'
                         },
