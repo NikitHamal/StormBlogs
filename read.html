@@ -1,4 +1,4 @@
-DOCTYPE html>
+<DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -884,6 +884,17 @@ document.addEventListener('click', (e) => {
       </div>
     </div>
   </main>
+  
+  <div id="ai-bottom-sheet" class="bottom-sheet">
+    <div class="sheet-header">
+        <div class="drag-handle"></div>
+        <h3>Article Assistant</h3>
+        <button class="close-btn" onclick="closeBottomSheet()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div id="sheet-content" class="sheet-content"></div>
+</div>
 
 </body>
 </html>
