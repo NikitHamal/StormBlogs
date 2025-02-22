@@ -4,278 +4,256 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StormBlogs</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-   
-<script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-
-
-<script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-
-
-<script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
-
-    <style>
-        :root {
-            --bg-color: #FDF7F2;
-            --text-color: #333;
-        }
-        
-        [data-theme="dark"] {
-            --bg-color: #1a1a1a;
-            --text-color: #ffffff;
-        }
-        
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s, color 0.3s;
-        }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="index.css">
 </head>
-<body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333; scroll-behavior: smooth;">
+<body>
+    <!-- Add loading overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
     <header>
         <div style="display: flex; align-items: center; justify-content: space-between; margin: 32px; margin-bottom:0px;">
             <div style="display: flex; align-items: center;">
                 <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
                 <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
             </div>
-            <div style="display: flex; align-items: center; gap: 16px;">
-                <button id="theme-toggle" style="padding: 8px; background: none; border: none; cursor: pointer;">
-                    <i class="fas fa-moon"></i>
-                </button>
                 <div id="auth-buttons">
+                <button id="write-btn" onclick="location.href='write.html';" 
+                    style="padding: 8px 16px; background-color: transparent; color: #111111; border: 2px solid #111111; border-radius: 32px; cursor: pointer; font-family: 'Poppins', serif; font-size: 13px; font-weight:500; margin-right: 12px; display: none;">
+                    Write
+                </button>
                     <button id="login-btn" onclick="location.href='login.html';" 
                         style="padding: 8px 16px; background-color: #111111; color: white; border: none; border-radius: 32px; cursor: pointer; font-family: 'Poppins', serif; font-size: 13px; font-weight:500;">
                         Login
                     </button>
                 </div>
-                <div id="user-info" style="display: none; align-items: center; gap: 8px;">
-                    <img id="user-avatar" src="" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-                    <span id="user-name" style="font-weight: 500;"></span>
-                    <button id="logout-btn" style="padding: 8px 16px; background-color: #ff4444; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 13px;">
-                        Logout
-                    </button>
+                <div id="user-info" style="display: none; align-items: center; gap: 8px; position: relative;">
+                    <div style="position: relative;">
+                        <img id="user-avatar" src="profile.jpg" alt="Profile" 
+                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; cursor: pointer;"
+                            onclick="toggleDropdown()">
+                        <span id="user-name" style="font-weight: 500;"></span>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="profile-dropdown" 
+                            style="display: none; position: absolute; top: 40px; right: 0; background: white; 
+                            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); min-width: 200px; z-index: 1000;">
+                            <div class="dropdown-header" style="padding: 12px 16px; border-bottom: 1px solid #eee;">
+                                <div style="font-weight: 600; color: #111;" id="dropdown-user-name">User Name</div>
+                                <div style="font-size: 0.85rem; color: #666;" id="dropdown-user-email">user@email.com</div>
+                            </div>
+                            <a href="profile.html" 
+                                style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #111; text-decoration: none; border-bottom: 1px solid #eee;">
+                                <i class="fas fa-user"></i>
+                                View Profile
+                            </a>
+                            <a href="profile.html#edit" 
+                                style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #111; text-decoration: none; border-bottom: 1px solid #eee;">
+                                <i class="fas fa-edit"></i>
+                                Edit Profile
+                            </a>
+                            <a href="profile.html#articles" 
+                                style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #111; text-decoration: none; border-bottom: 1px solid #eee;">
+                                <i class="fas fa-book"></i>
+                                My Articles
+                            </a>
+                            <a href="profile.html#drafts" 
+                                style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #111; text-decoration: none; border-bottom: 1px solid #eee;">
+                                <i class="fas fa-file-alt"></i>
+                                My Drafts
+                            </a>
+                            <div id="admin-option" style="display: none;">
+                                <a href="admin.html" 
+                                    style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #111; text-decoration: none; border-bottom: 1px solid #eee;">
+                                    <i class="fas fa-shield-alt"></i>
+                                    Admin Panel
+                                </a>
+                            </div>
+                            <a href="profile.html#settings" 
+                                style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #111; text-decoration: none; border-bottom: 1px solid #eee;">
+                                <i class="fas fa-cog"></i>
+                                Settings
+                            </a>
+                            <a href="#" onclick="handleLogout(event)" 
+                                style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; color: #ff4444; text-decoration: none;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </header>
 
-<!-- Top Navigation Bar -->
-<nav style="padding: 8px 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;">
-
-    <!-- Links -->
-    <div style="display: flex; gap: 16px; margin-right: 16px; margin-left: 20px;">
-        
-<a href="index.html" style="text-decoration: none; border-bottom:2px solid black; font-weight:500; font-size: 16px; padding: 8px 16px; transition: background-color 0.3s ease; color: black; position: relative;" id="home-tab">Home</a>
-        
-<a href="articles.html" style="text-decoration: none; font-weight:500; font-size: 16px; padding: 8px 16px; transition: background-color 0.3s ease; color: black;" id="articles-tab">Articles</a>
-</nav>
-
-<div style="display: flex; flex-direction:column; align-items: center; justify-content: center; margin:32px;">
-
-<h1 style="margin-top:16px; margin-bottom:0px;"> Bringing storm to the world of Writing  </h1>
-
-<p style="color:grey; margin-top:8px; margin-bottom:0px; font-weight:500;"> Writing to express, to be understood, and to make a difference. </p> 
-</div>
-
-
-<div style="max-width: 400px; margin: 16px auto;  display: flex; align-items: center; justify-content: center; gap: 16px;">
-
-<div style="display: flex; align-items: center; padding: 4px 16px; border-radius: 32px; border: 1px solid #e0e0e0; width:80%;">
-        
-<img src="search.png" alt="Search" style="width: 20px; height: 20px; margin-right: 12px; opacity: 0.6;">
-        
-<input type="text" placeholder="Search Articles" style="width: 100%; border: none; background: none; outline: none; padding: 8px 0; font-size: 15px; color: #333; font-family:'Poppins', serif;">
+<section class="hero-section">
+    <div class="floating-shapes">
+        <div style="width: 100px; height: 100px; top: 10%; left: 10%;"></div>
+        <div style="width: 150px; height: 150px; top: 50%; right: 10%;"></div>
+        <div style="width: 80px; height: 80px; bottom: 20%; left: 20%;"></div>
+    </div>
     
-</div>
-    
-</div>
+    <div class="hero-content">
+        <h1 class="hero-title" id="welcomeTitle">Welcome to StormBlogs</h1>
+        <p class="hero-subtitle" id="welcomeSubtitle">A place where ideas take flight and stories come to life. Join our community of writers, thinkers, and storytellers.</p>
+        <div class="cta-buttons">
+        <a href="articles.html" class="cta-button">Explore Articles</a>
+            <a href="write.html" id="writeButton" class="cta-button" style="background-color: transparent; color: #111; border: 2px solid #111; margin-left: 12px; display: none;">Let's Write</a>
+        </div>
+    </div>
+    <div class="scroll-indicator">
+        <i class="fas fa-chevron-down" style="color: #111; font-size: 24px;"></i>
+    </div>
+</section>
 
-<div style="display:flex; flex-wrap: wrap; align-items:center; justify-content: space-between; margin:32px; margin-bottom:0px;">
-<p style="font-weight:600; margin-top:8px; margin-bottom:0px; font-size:20px;"> Featured Articles </p>
-</div>
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-card" style="animation-delay: 0.3s;">
+            <div class="stat-number">1+</div>
+            <div>Active Writers</div>
+        </div>
+        <div class="stat-card" style="animation-delay: 0.6s;">
+            <div class="stat-number">1+</div>
+            <div>Articles Published</div>
+        </div>
+        <div class="stat-card" style="animation-delay: 0.9s;">
+            <div class="stat-number">1+</div>
+            <div>Monthly Readers</div>
+        </div>
+    </div>
+</section>
 
-<div id="blog-feed" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start; padding: 16px; margin: 0 auto; max-width: 100%;"></div>
+<section class="features-section">
+    <div class="features-grid">
+        <div class="feature-card" style="animation: fadeInUp 1s ease forwards 0.3s;">
+            <i class="fas fa-pen-fancy feature-icon"></i>
+            <h3>Write & Share</h3>
+            <p>Share your thoughts and stories with our growing community.</p>
+        </div>
+        <div class="feature-card" style="animation: fadeInUp 1s ease forwards 0.6s;">
+            <i class="fas fa-users feature-icon"></i>
+            <h3>Connect</h3>
+            <p>Engage with like-minded individuals and build meaningful connections.</p>
+        </div>
+        <div class="feature-card" style="animation: fadeInUp 1s ease forwards 0.9s;">
+            <i class="fas fa-lightbulb feature-icon"></i>
+            <h3>Discover</h3>
+            <p>Explore diverse perspectives and inspiring content.</p>
+        </div>
+    </div>
+</section>
 
+<section class="testimonials-section">
+    <div class="testimonial-grid">
+        <div class="testimonial-card" style="animation-delay: 0.3s;">
+            <img src="https://i.pravatar.cc/150?img=1" alt="Avatar" class="testimonial-avatar">
+            <h4>Sarah Johnson</h4>
+            <p>"StormBlogs has transformed how I share my thoughts with the world. The community here is incredible!"</p>
+        </div>
+        <div class="testimonial-card" style="animation-delay: 0.6s;">
+            <img src="https://i.pravatar.cc/150?img=2" alt="Avatar" class="testimonial-avatar">
+            <h4>Michael Chen</h4>
+            <p>"As a tech writer, I've found my home here. The platform is intuitive and the readers are engaged."</p>
+        </div>
+        <div class="testimonial-card" style="animation-delay: 0.9s;">
+            <img src="https://i.pravatar.cc/150?img=3" alt="Avatar" class="testimonial-avatar">
+            <h4>Emma Davis</h4>
+            <p>"The quality of content and discussions here is unmatched. Proud to be part of this community!"</p>
+        </div>
+    </div>
+</section>
 
-<div style="margin-top: 32px; text-align: center;">
-    <button onclick="location.href='articles.html';" style="padding: 12px 24px; background-color: #111111; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background-color 0.3s ease; margin-bottom: 32px;">
-        Explore All Articles
-    </button>
-</div>
+<section class="cta-section">
+    <h2>Ready to Start Your Journey?</h2>
+    <p>Join thousands of writers and readers in our growing community.</p>
+    <a href="login.html" id="getStartedButton" class="cta-button">Get Started Today</a>
+</section>
 
-<script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js';
-    import { getFirestore, collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
+<section class="workflow-section">
+    <h2 style="text-align: center; margin-bottom: 60px;">How It Works</h2>
+    <div class="workflow-container">
+        <div class="workflow-step floating-element">
+            <div class="workflow-number">1</div>
+            <i class="fas fa-edit" style="font-size: 2rem; color: #111; margin-bottom: 20px;"></i>
+            <h3>Create</h3>
+            <p>Write your stories with our powerful editor</p>
+        </div>
+        <div class="workflow-step floating-element" style="animation-delay: 0.2s;">
+            <div class="workflow-number">2</div>
+            <i class="fas fa-share-alt" style="font-size: 2rem; color: #111; margin-bottom: 20px;"></i>
+            <h3>Share</h3>
+            <p>Publish and share with the community</p>
+        </div>
+        <div class="workflow-step floating-element" style="animation-delay: 0.4s;">
+            <div class="workflow-number">3</div>
+            <i class="fas fa-comments" style="font-size: 2rem; color: #111; margin-bottom: 20px;"></i>
+            <h3>Engage</h3>
+            <p>Connect with readers and fellow writers</p>
+        </div>
+    </div>
+</section>
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
-        authDomain: "storm-blogs.firebaseapp.com",
-        projectId: "storm-blogs",
-        storageBucket: "storm-blogs.firebasestorage.app",
-        messagingSenderId: "158567556221",
-        appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
-    };
+<section class="features-highlight">
+    <div class="highlight-grid">
+        <div class="highlight-content">
+            <h2>Why Choose StormBlogs?</h2>
+            <ul class="highlight-list">
+                <li class="slideIn">
+                    <div class="highlight-icon">
+                        <i class="fas fa-feather"></i>
+                    </div>
+                    <div>
+                        <h4>Elegant Writing Experience</h4>
+                        <p>Distraction-free editor with markdown support</p>
+                    </div>
+                </li>
+                <li class="slideIn" style="animation-delay: 0.2s;">
+                    <div class="highlight-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h4>Vibrant Community</h4>
+                        <p>Connect with passionate writers and readers</p>
+                    </div>
+                </li>
+                <li class="slideIn" style="animation-delay: 0.4s;">
+                    <div class="highlight-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h4>Growth Analytics</h4>
+                        <p>Track your content's performance</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643" 
+             alt="Writing Experience" 
+             class="highlight-image pulse-element">
+    </div>
+</section>
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+<section class="newsletter-section">
+    <h2>Stay Updated</h2>
+    <p>Get the latest stories and updates delivered to your inbox</p>
+    <form class="newsletter-form">
+        <input type="email" placeholder="Enter your email" class="newsletter-input">
+        <button type="submit" class="newsletter-button">Subscribe</button>
+    </form>
+</section>
 
-    // Google Sign-In function
-    function googleSignIn() {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider)
-            .then((result) => {
-                const user = result.user;
-                console.log("User signed in:", user.displayName);
-                document.getElementById("google-sign-in").innerHTML = `<p>Signed in as ${user.displayName}</p>`;
-            })
-            .catch((error) => {
-                console.error("Error signing in with Google:", error);
-            });
-    }
-
-    // Sign out function
-    function googleSignOut() {
-        signOut(auth)
-            .then(() => {
-                console.log("User signed out");
-                document.getElementById("google-sign-in").innerHTML = `
-                    <button onclick="googleSignIn()" style="padding: 12px 24px; background-color: #4285F4; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background-color 0.3s ease;">
-                        Sign in with Google
-                    </button>
-                `;
-            })
-            .catch((error) => {
-                console.error("Error signing out:", error);
-            });
-    }
-
-    // Monitor authentication state
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById("google-sign-in").innerHTML = `
-                <p>Signed in as ${user.displayName}</p>
-                <button onclick="googleSignOut()" style="padding: 12px 24px; background-color: #db4437; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 14px; font-weight: 600; transition: background-color 0.3s ease;">
-                    Sign out
-                </button>
-            `;
-        }
-    });
-
-    // Function to fetch featured posts
-    document.addEventListener("DOMContentLoaded", function() {
-        const featuredPostsRef = collection(db, "posts");
-        const featuredQuery = query(featuredPostsRef, where("featured", "==", true));
-
-        getDocs(featuredQuery)
-            .then(snapshot => {
-                 if (snapshot.empty) {
-                        document.getElementById("blog-feed").innerHTML = "<p style='text-align:center;'>No articles available.</p>";
-                        return;
-                    }
-
-                    let feedHtml = "";
-                    const uiClasses = [
-                        "background: #8DE4AF; color: #111;",
-                        "background: #111; color: #fff;",
-                        "background: #D7AFFF; color: #111;",
-                        "background: #FCE77D; color: #111;"
-                    ];
-
-                    snapshot.forEach(doc => {
-                        const post = doc.data();
-                        let timeDiff = Date.now() - post.timestamp;
-                        let timeAgo = formatTimeAgo(timeDiff);
-                        let truncatedContent = post.content.length > 250 ? post.content.substring(0, 247) + '...' : post.content
-                        const randomClass = uiClasses[Math.floor(Math.random() * uiClasses.length)];
-
-                        feedHtml += `
-                            <div style="display: flex; gap: 16px; margin:0px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">
-                                <div style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; ${randomClass}">
-                                    <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">${post.category}</p>
-                                    <p style="font-weight:600; font-size:18px; margin:8px 0;">${post.title}</p>
-                                    <p style="font-size: 14px; margin: 8px 0;">${truncatedContent}</p>
-                                    <span style="display: inline-block; font-weight: 500; cursor: pointer; text-decoration: underline;" onclick="location.href='read.html?id=${doc.id}'">Read More</span>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    document.getElementById("blog-feed").innerHTML = feedHtml;
-                })
-                .catch(error => console.error("Error loading posts:", error));
-        });
-
-
-
-    // Function to format time difference
-    function formatTimeAgo(milliseconds) {
-        const seconds = Math.floor(milliseconds / 1000);
-        const minutes = Math.floor(seconds / 60);
-        const hours = Math.floor(minutes / 60);
-        const days = Math.floor(hours / 24);
-        const weeks = Math.floor(days / 7);
-        const months = Math.floor(days / 30);
-        const years = Math.floor(days / 365);
-        
-        if (years > 0) return `${years} year${years > 1 ? 's' : ''}`;
-        if (months > 0) return `${months} month${months > 1 ? 's' : ''}`;
-        if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''}`;
-        if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
-        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-        if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
-        return `${seconds} second${seconds > 1 ? 's' : ''}`;
-    }
-
-    // Handle auth state changes
-    onAuthStateChanged(auth, (user) => {
-        const authButtons = document.getElementById('auth-buttons');
-        const userInfo = document.getElementById('user-info');
-        const writeNav = document.getElementById('write-nav');
-        const adminButton = document.getElementById('admin-button');
-        
-        if (user) {
-            // User is signed in
-            authButtons.style.display = 'none';
-            userInfo.style.display = 'flex';
-            writeNav.style.display = 'block';
-            
-            // Update user info
-            document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
-            document.getElementById('user-avatar').src = user.photoURL || 'profile.jpg';
-            
-            // Check for admin email explicitly
-            if (user.email === 'iamnikithamal@gmail.com' || user.email === 'nikithamal010@gmail.com') {
-                console.log('Admin user detected:', user.email);
-                adminButton.style.display = 'block';
-            } else {
-                console.log('Regular user detected:', user.email);
-                adminButton.style.display = 'none';
-            }
-            
-            localStorage.setItem('user', JSON.stringify(user));
-        } else {
-            // User is signed out
-            authButtons.style.display = 'block';
-            userInfo.style.display = 'none';
-            writeNav.style.display = 'none';
-            adminButton.style.display = 'none';
-            localStorage.removeItem('user');
-        }
-    });
-    
-    // Handle logout
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
-        signOut(auth).then(() => {
-            window.location.reload();
-        }).catch((error) => {
-            console.error('Error signing out:', error);
-        });
-    });
-</script>
-
+<footer>
+    <h3>StormBlogs</h3>
+    <p>Where ideas take flight</p>
+    <div class="social-links">
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin"></i></a>
+        <a href="#"><i class="fab fa-github"></i></a>
+    </div>
+</footer>
+<script type="module" src="index.js"></script>
 </body>
 </html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #FDF7F2;
+            --text-color: #333;
+            --primary-color: #111;
+            --border-color: #eee;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+
+        .logo img {
+            height: 26px;
+            width: 26px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .search-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-option {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-option.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .user-cover {
+            height: 80px;
+            background: linear-gradient(45deg, #1a73e8, #8ab4f8);
+        }
+
+        .user-info {
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            margin-top: -40px;
+            margin-bottom: 0.5rem;
+        }
+
+        .user-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .verified-badge {
+            color: #1a73e8;
+            font-size: 1rem;
+        }
+
+        .user-bio {
+            color: #666;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .user-stats {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .pro-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #1a73e8;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .filter-options {
+                justify-content: center;
+            }
+
+            .users-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .search-section {
+                padding: 1rem;
+            }
+
+            .users-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Logo">
+                <h4 style="margin: 0;">/Storm Blogs</h4>
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search users by name or bio...">
+            </div>
+            <div class="filter-options">
+                <div class="filter-option" data-filter="all">All Users</div>
+                <div class="filter-option" data-filter="verified">Verified Users</div>
+                <div class="filter-option" data-filter="pro">Pro Users</div>
+                <div class="filter-option" data-filter="active">Most Active</div>
+            </div>
+        </div>
+
+        <div class="users-grid" id="usersGrid">
+            <!-- Users will be dynamically added here -->
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore();
+
+        let allUsers = [];
+        let currentFilter = 'all';
+        let searchTimeout;
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const usersQuery = query(collection(db, "users"), limit(50));
+                const snapshot = await getDocs(usersQuery);
+                
+                allUsers = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                filterAndDisplayUsers();
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showError('Failed to load users');
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        function filterAndDisplayUsers() {
+            let filteredUsers = [...allUsers];
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            // Apply search filter
+            if (searchTerm) {
+                filteredUsers = filteredUsers.filter(user => 
+                    user.username?.toLowerCase().includes(searchTerm) ||
+                    user.bio?.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            // Apply category filter
+            switch (currentFilter) {
+                case 'verified':
+                    filteredUsers = filteredUsers.filter(user => user.verified);
+                    break;
+                case 'pro':
+                    filteredUsers = filteredUsers.filter(user => user.isPro);
+                    break;
+                case 'active':
+                    filteredUsers.sort((a, b) => (b.totalPosts || 0) - (a.totalPosts || 0));
+                    break;
+            }
+
+            displayUsers(filteredUsers);
+        }
+
+        function displayUsers(users) {
+            const grid = document.getElementById('usersGrid');
+            
+            if (users.length === 0) {
+                grid.innerHTML = '<div class="no-results">No users found</div>';
+                return;
+            }
+
+            grid.innerHTML = users.map(user => `
+                <div class="user-card" onclick="window.location.href='userview.html?id=${user.id}'">
+                    <div class="user-cover"></div>
+                    <div class="user-info">
+                        <img src="${user.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`}" 
+                             alt="${user.username}" 
+                             class="user-avatar">
+                        <h3 class="user-name">
+                            ${user.username || 'Anonymous'}
+                            ${user.verified ? '<i class="fas fa-check-circle verified-badge"></i>' : ''}
+                        </h3>
+                        <p class="user-bio">${user.bio || 'No bio available'}</p>
+                        ${user.isPro ? '<div class="pro-badge">PRO</div>' : ''}
+                        <div class="user-stats">
+                            <div class="stat">
+                                <div class="stat-value">${user.totalPosts || 0}</div>
+                                <div class="stat-label">Posts</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${user.totalViews || 0}</div>
+                                <div class="stat-label">Views</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${user.totalLikes || 0}</div>
+                                <div class="stat-label">Likes</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Setup event listeners
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                filterAndDisplayUsers();
+            }, 300);
+        });
+
+        document.querySelectorAll('.filter-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.filter-option').forEach(opt => 
+                    opt.classList.remove('active')
+                );
+                option.classList.add('active');
+                currentFilter = option.dataset.filter;
+                filterAndDisplayUsers();
+            });
+        });
+
+        // Initialize
+        document.querySelector('[data-filter="all"]').classList.add('active');
+        loadUsers();
+    </script>
+</body>
+</html> 

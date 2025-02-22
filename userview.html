@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #FDF7F2;
+            --text-color: #333;
+            --primary-color: #111;
+            --border-color: #eee;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--primary-color);
+        }
+
+        .logo img {
+            height: 26px;
+            width: 26px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .user-profile {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        .profile-header {
+            position: relative;
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .profile-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .profile-username {
+            color: #666;
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+        }
+
+        .profile-bio {
+            color: #444;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        .profile-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .meta-item {
+            text-align: center;
+        }
+
+        .meta-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .meta-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .profile-details {
+            padding: 2rem;
+        }
+
+        .details-section {
+            margin-bottom: 2rem;
+        }
+
+        .details-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .detail-icon {
+            width: 32px;
+            height: 32px;
+            background: #f5f5f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .detail-content {
+            flex: 1;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .detail-value {
+            color: var(--text-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .interests-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .interest-tag {
+            background: #f5f5f5;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .content-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .articles-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin: 0 0 1.5rem 0;
+            color: var(--primary-color);
+        }
+
+        .article-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .article-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .article-title {
+            font-size: 1.2rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--primary-color);
+        }
+
+        .article-excerpt {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .sidebar-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+
+        .chart-container {
+            margin-top: 1rem;
+            height: 200px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #1a73e8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #d32f2f;
+            text-align: center;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: #fde7e7;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .join-date {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .content-section {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-stats {
+                flex-wrap: wrap;
+                gap: 2rem;
+            }
+
+            .profile-name {
+                font-size: 1.5rem;
+            }
+
+            .profile-bio {
+                font-size: 1rem;
+            }
+
+            .cover-photo {
+                height: 150px;
+            }
+
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+                margin-top: -60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <img src="logo.png" alt="Logo">
+                <h4 style="margin: 0;">/Storm Blogs</h4>
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="user-profile">
+            <div class="profile-header">
+                <img src="" alt="Profile" class="profile-avatar" id="profileAvatar">
+                <h1 class="profile-name" id="profileName">
+                    Loading...
+                    <span id="verifiedBadge" style="display: none;">
+                        <i class="fas fa-check-circle verified-badge"></i>
+                    </span>
+                </h1>
+                <div class="profile-username" id="profileUsername">@Loading...</div>
+                <p class="profile-bio" id="profileBio">Loading...</p>
+                
+                <div class="profile-meta">
+                    <div class="meta-item">
+                        <div class="meta-value" id="postsCount">0</div>
+                        <div class="meta-label">Posts</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value" id="followersCount">0</div>
+                        <div class="meta-label">Followers</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value" id="followingCount">0</div>
+                        <div class="meta-label">Following</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value" id="totalLikes">0</div>
+                        <div class="meta-label">Likes</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="meta-value" id="totalViews">0</div>
+                        <div class="meta-label">Views</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="details-section">
+                    <h2 class="details-title">About</h2>
+                    <div class="details-grid">
+                        <div class="detail-item" id="locationContainer" style="display: none;">
+                            <div class="detail-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Location</div>
+                                <div class="detail-value" id="location">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item" id="occupationContainer" style="display: none;">
+                            <div class="detail-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Occupation</div>
+                                <div class="detail-value" id="occupation">Loading...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-item" id="websiteContainer" style="display: none;">
+                            <div class="detail-icon">
+                                <i class="fas fa-globe"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Website</div>
+                                <div class="detail-value">
+                                    <a href="" id="website" target="_blank" rel="noopener noreferrer">Loading...</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-item" id="emailContainer" style="display: none;">
+                            <div class="detail-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="detail-content">
+                                <div class="detail-label">Email</div>
+                                <div class="detail-value" id="email">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="details-section" id="interestsSection" style="display: none;">
+                    <h2 class="details-title">Interests</h2>
+                    <div class="interests-list" id="interestsList">
+                        <!-- Interests will be added here -->
+                    </div>
+                </div>
+
+                <div class="details-section" id="connectSection" style="display: none;">
+                    <h2 class="details-title">Connect</h2>
+                    <div class="social-links" id="socialLinks">
+                        <!-- Social links will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <div class="articles-section">
+                <h2 class="section-title">Latest Articles</h2>
+                <div id="articlesContainer">
+                    <!-- Articles will be added here -->
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2 class="section-title">Activity Overview</h2>
+                <div class="chart-container">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            query, 
+            where, 
+            getDocs, 
+            doc, 
+            getDoc, 
+            orderBy, 
+            limit, 
+            updateDoc,
+            arrayUnion,
+            serverTimestamp,
+            startAfter
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore();
+
+        // Global variables
+        let currentUser = null;
+        let lastArticle = null;
+        const ARTICLES_PER_PAGE = 10;
+        let hasMoreArticles = true;
+        let isLoadingMore = false;
+
+        // Get user ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
+
+        if (!userId) {
+            window.location.href = 'users.html';
+        }
+
+        // Initialize auth state
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            loadUserProfile();
+            if (user && user.uid !== userId) {
+                recordProfileView();
+            }
+        });
+
+        async function recordProfileView() {
+            try {
+                const userRef = doc(db, "users", userId);
+                const userDoc = await getDoc(userRef);
+                
+                if (!userDoc.exists()) return;
+
+                const userData = userDoc.data();
+                const profilePictures = userData.profilePictures || [];
+                
+                // Check if user has viewed in last 24 hours
+                const lastView = profilePictures.find(pic => 
+                    pic.timestamp && 
+                    new Date(pic.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+                );
+
+                if (!lastView) {
+                    await updateDoc(userRef, {
+                        profilePictures: arrayUnion({
+                            url: currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`,
+                            timestamp: new Date().toISOString(),
+                            viewerId: currentUser.uid,
+                            viewerName: currentUser.displayName || 'Anonymous'
+                        })
+                    });
+                }
+            } catch (error) {
+                console.error('Error recording profile view:', error);
+            }
+        }
+
+        async function loadUserProfile() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            try {
+                // Get user document
+                const userDoc = await getDoc(doc(db, "users", userId));
+                if (!userDoc.exists()) {
+                    showError('User not found');
+                    window.location.href = 'users.html';
+                    return;
+                }
+
+                const userData = userDoc.data();
+
+                // Update page title
+                document.title = `${userData.displayName || 'Anonymous'} - StormBlogs`;
+
+                // Update profile information
+                const profileElements = {
+                    name: document.getElementById('profileName'),
+                    bio: document.getElementById('profileBio'),
+                    avatar: document.getElementById('profileAvatar'),
+                    username: document.getElementById('profileUsername'),
+                    location: document.getElementById('location'),
+                    locationContainer: document.getElementById('locationContainer'),
+                    occupation: document.getElementById('occupation'),
+                    occupationContainer: document.getElementById('occupationContainer'),
+                    website: document.getElementById('website'),
+                    websiteContainer: document.getElementById('websiteContainer'),
+                    email: document.getElementById('email'),
+                    emailContainer: document.getElementById('emailContainer'),
+                    interests: document.getElementById('interestsList'),
+                    interestsSection: document.getElementById('interestsSection'),
+                    socialLinks: document.getElementById('socialLinks'),
+                    connectSection: document.getElementById('connectSection')
+                };
+
+                // Update basic info
+                if (profileElements.name) profileElements.name.textContent = userData.displayName || 'Anonymous';
+                if (profileElements.bio) profileElements.bio.textContent = userData.bio || 'No bio available';
+                if (profileElements.avatar) profileElements.avatar.src = userData.avatarUrl || 
+                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`;
+                if (profileElements.username) profileElements.username.textContent = `@${userData.username}`;
+
+                // Update location based on privacy settings
+                if (userData.location && (!userData.privacy || userData.privacy.showLocation)) {
+                    profileElements.location.textContent = userData.location;
+                    profileElements.locationContainer.style.display = 'flex';
+                }
+
+                // Update occupation if available
+                if (userData.occupation) {
+                    profileElements.occupation.textContent = userData.occupation;
+                    profileElements.occupationContainer.style.display = 'flex';
+                }
+
+                // Update website if available
+                if (userData.website) {
+                    profileElements.website.href = userData.website;
+                    profileElements.website.textContent = new URL(userData.website).hostname;
+                    profileElements.websiteContainer.style.display = 'flex';
+                }
+
+                // Update email based on privacy settings
+                if (userData.email && (!userData.privacy || userData.privacy.showEmail)) {
+                    profileElements.email.textContent = userData.email;
+                    profileElements.emailContainer.style.display = 'flex';
+                }
+                
+                // Show badges if applicable
+                if (userData.verified) {
+                    document.getElementById('verifiedBadge').style.display = 'inline';
+                }
+
+                // Update interests
+                if (userData.interests && userData.interests.length > 0) {
+                    const interestsHTML = userData.interests.map(interest => 
+                        `<span class="interest-tag">${interest}</span>`
+                    ).join('');
+                    profileElements.interests.innerHTML = interestsHTML;
+                    profileElements.interestsSection.style.display = 'block';
+                }
+
+                // Update social links
+                if (userData.social) {
+                    const socialHTML = [];
+                    const { instagram, twitter, linkedin, github } = userData.social;
+                    
+                    if (instagram) {
+                        socialHTML.push(`
+                            <a href="https://instagram.com/${instagram}" target="_blank" class="social-link" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        `);
+                    }
+                    
+                    if (twitter) {
+                        socialHTML.push(`
+                            <a href="https://twitter.com/${twitter}" target="_blank" class="social-link" title="Twitter">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                        `);
+                    }
+                    
+                    if (linkedin) {
+                        socialHTML.push(`
+                            <a href="https://linkedin.com/in/${linkedin}" target="_blank" class="social-link" title="LinkedIn">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                        `);
+                    }
+                    
+                    if (github) {
+                        socialHTML.push(`
+                            <a href="https://github.com/${github}" target="_blank" class="social-link" title="GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        `);
+                    }
+                    
+                    if (socialHTML.length > 0) {
+                        profileElements.socialLinks.innerHTML = socialHTML.join('');
+                        profileElements.connectSection.style.display = 'block';
+                    }
+                }
+
+                // Update stats
+                document.getElementById('postsCount').textContent = userData.posts || 0;
+                document.getElementById('followersCount').textContent = userData.followers?.length || 0;
+                document.getElementById('followingCount').textContent = userData.following?.length || 0;
+                document.getElementById('totalLikes').textContent = userData.likes?.length || 0;
+                document.getElementById('totalViews').textContent = userData.totalViews || 0;
+
+                // Load initial articles
+                await loadArticles();
+
+                // Add infinite scroll for articles
+                window.addEventListener('scroll', handleScroll);
+
+                // Load user stats
+                await loadUserStats(userData);
+
+                // Hide loading overlay
+                loadingOverlay.style.display = 'none';
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showError('Failed to load user profile');
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        async function loadArticles(loadMore = false) {
+            if (isLoadingMore || (!loadMore && !hasMoreArticles)) return;
+
+            isLoadingMore = true;
+            try {
+                let articlesQuery = query(
+                    collection(db, "posts"),
+                    where("authorId", "==", userId),
+                    orderBy("timestamp", "desc"),
+                    limit(ARTICLES_PER_PAGE)
+                );
+
+                if (loadMore && lastArticle) {
+                    articlesQuery = query(
+                        collection(db, "posts"),
+                        where("authorId", "==", userId),
+                        orderBy("timestamp", "desc"),
+                        startAfter(lastArticle),
+                        limit(ARTICLES_PER_PAGE)
+                    );
+                }
+
+                const articlesSnapshot = await getDocs(articlesQuery);
+                
+                if (articlesSnapshot.empty) {
+                    hasMoreArticles = false;
+                    if (!loadMore) {
+                        document.getElementById('articlesContainer').innerHTML = 
+                            '<p style="text-align: center; color: #666;">No articles yet</p>';
+                    }
+                    return;
+                }
+
+                lastArticle = articlesSnapshot.docs[articlesSnapshot.docs.length - 1];
+                hasMoreArticles = articlesSnapshot.docs.length === ARTICLES_PER_PAGE;
+
+                const articlesContainer = document.getElementById('articlesContainer');
+                if (!loadMore) {
+                    articlesContainer.innerHTML = '';
+                }
+
+                articlesSnapshot.forEach(doc => {
+                    const article = doc.data();
+                    
+                    // Calculate stats
+                    const views = article.viewHistory?.length || 0;
+                    const likes = article.likes?.length || 0;
+                    const comments = article.comments?.length || 0;
+
+                    // Create article card
+                    const content = article.content || '';
+                    const plainText = content.replace(/<[^>]*>/g, '');
+                    const excerpt = plainText.substring(0, 150) + '...';
+
+                    const articleCard = document.createElement('div');
+                    articleCard.className = 'article-card';
+                    articleCard.onclick = () => window.location.href = `read.html?id=${doc.id}`;
+                    articleCard.innerHTML = `
+                        <h3 class="article-title">${article.title}</h3>
+                        <p class="article-excerpt">${excerpt}</p>
+                        <div class="article-meta">
+                            <span class="meta-item">
+                                <i class="fas fa-eye"></i> ${views}
+                            </span>
+                            <span class="meta-item">
+                                <i class="fas fa-heart"></i> ${likes}
+                            </span>
+                            <span class="meta-item">
+                                <i class="fas fa-comment"></i> ${comments}
+                            </span>
+                            <span class="meta-item">
+                                <i class="fas fa-clock"></i> ${article.readTime || 0} min read
+                            </span>
+                            <span class="meta-item">
+                                <i class="fas fa-calendar"></i> 
+                                ${article.timestamp?.toDate().toLocaleDateString()}
+                            </span>
+                        </div>
+                    `;
+
+                    articlesContainer.appendChild(articleCard);
+                });
+
+            } catch (error) {
+                console.error('Error loading articles:', error);
+                showError('Failed to load articles');
+            } finally {
+                isLoadingMore = false;
+            }
+        }
+
+        async function loadUserStats(userData) {
+            try {
+                // Get all user's articles for comprehensive stats
+                const articlesQuery = query(
+                    collection(db, "posts"),
+                    where("authorId", "==", userId)
+                );
+                const articlesSnapshot = await getDocs(articlesQuery);
+                
+                // Initialize stats
+                const stats = {
+                    totalPosts: userData.posts || 0,
+                    totalFollowers: userData.followers?.length || 0,
+                    totalFollowing: userData.following?.length || 0,
+                    totalLikes: userData.likes?.length || 0
+                };
+
+                // Initialize activity data for the last 7 days
+                const activityData = new Array(7).fill(0);
+                const today = new Date();
+
+                // Process articles for activity data
+                articlesSnapshot.forEach(doc => {
+                    const article = doc.data();
+                    
+                    // Track activity by date
+                    if (article.createdAt) {
+                        const articleDate = article.createdAt.toDate();
+                        const dayDiff = Math.floor((today - articleDate) / (1000 * 60 * 60 * 24));
+                        if (dayDiff < 7) {
+                            activityData[dayDiff]++;
+                        }
+                    }
+                });
+
+                // Create activity chart
+                const ctx = document.getElementById('activityChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 7}, (_, i) => {
+                            const d = new Date();
+                            d.setDate(d.getDate() - i);
+                            return d.toLocaleDateString('en-US', { weekday: 'short' });
+                        }).reverse(),
+                        datasets: [{
+                            label: 'Posts',
+                            data: activityData.reverse(),
+                            borderColor: '#1a73e8',
+                            backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Posts: ${context.raw}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+                showError('Failed to load user statistics');
+            }
+        }
+
+        function handleScroll() {
+            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+                if (hasMoreArticles && !isLoadingMore) {
+                    loadArticles(true);
+                }
+            }
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+            }
+            console.error(message);
+        }
+    </script>
+</body>
+</html> 

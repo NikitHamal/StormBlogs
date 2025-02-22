@@ -1,0 +1,66 @@
+<!-- Add profile link/avatar to the navigation -->
+<div class="nav-profile" id="navProfile">
+    <img id="navAvatar" class="nav-avatar" src="" alt="Profile">
+    <div class="profile-dropdown">
+        <a href="profile.html">My Profile</a>
+        <a href="#" onclick="signOut()">Sign Out</a>
+    </div>
+</div>
+
+<style>
+    .nav-profile {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .nav-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .profile-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        padding: 10px 0;
+        min-width: 150px;
+        display: none;
+    }
+
+    .nav-profile:hover .profile-dropdown {
+        display: block;
+    }
+
+    .profile-dropdown a {
+        display: block;
+        padding: 8px 20px;
+        color: #333;
+        text-decoration: none;
+    }
+
+    .profile-dropdown a:hover {
+        background: #f5f5f5;
+    }
+</style>
+
+<script>
+    // Add to your existing script
+    async function loadUserProfile() {
+        const user = auth.currentUser;
+        if (user) {
+            const docSnap = await getDoc(doc(db, "users", user.uid));
+            if (docSnap.exists()) {
+                const userData = docSnap.data();
+                document.getElementById('navAvatar').src = userData.avatarUrl;
+            }
+        }
+    }
+
+    // Call this after authentication
+    loadUserProfile();
+</script> 

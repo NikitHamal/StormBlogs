@@ -87,85 +87,98 @@
         }
 
         .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 30px;
+        padding: 20px 0;
+    }
 
-        .article-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease;
-            cursor: pointer;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
+    /* Enhanced Article Cards */
+    .article-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+    }
 
-        .article-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
+    .article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
 
         .article-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 20px 20px 0 0;
-            display: block;
-        }
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: #f5f5f5;
+    }
 
         .article-image.has-image {
             display: block;
         }
 
         .article-content {
-            padding: 20px;
-        }
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
 
-        .article-category {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
+    .article-category {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-        .article-title {
-            margin: 0;
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            color: #111;
-        }
+    .article-title {
+        font-size: 1.3rem;
+        margin: 0 0 12px 0;
+        line-height: 1.4;
+        color: #111;
+        flex: 1;
+    }
+
+    /* Meta Information */
+    .article-meta {
+        margin-top: auto;
+        padding-top: 8px;
+        border-top: 1px solid rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0px;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #666;
+    }
 
         .article-preview {
             color: #666;
             font-size: 0.9rem;
-            margin-bottom: 15px;
+            margin:0px;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        .article-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #666;
-        }
-
         .article-author {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .author-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-        }
+    .author-avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #f5f5f5;
+    }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -1301,40 +1314,61 @@
             card.className = 'article-card';
             card.onclick = () => window.location.href = `read.html?id=${article.id}`;
 
-            // Create excerpt from content (strip HTML and limit length)
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = article.content;
-            const textContent = tempDiv.textContent || tempDiv.innerText;
-            const excerpt = textContent.substring(0, 120) + '...';
+            const excerpt = tempDiv.textContent.substring(0, 100) + '...';
 
             card.innerHTML = `
-                <div class="card-content">
-                    <div class="card-category">${article.category || 'Uncategorized'}</div>
-                    <h2 class="card-title">${article.title}</h2>
-                    <div class="card-tags">
-                        ${(article.themes || []).slice(0, 2).map(theme => 
-                            `<span class="card-tag">${theme}</span>`
-                        ).join('')}
+                <div class="card-category">${article.category || 'Uncategorized'}</div>
+                <h2 class="card-title">${article.title}</h2>
+                <p class="card-excerpt">${excerpt}</p>
+                <div class="card-meta">
+                    <div class="meta-left">
+                        <span>${article.authorName || 'Anonymous'}</span>
+                        <span>${formatDate(article.timestamp)}</span>
                     </div>
-                    <p class="card-excerpt">${excerpt}</p>
-                    <div class="card-meta">
-                        <a href="#" class="card-author">${article.authorName || 'Anonymous'}</a>
-                        <div class="card-actions">
-                            <span class="card-action">
-                                <i class="far fa-heart"></i>
-                                ${article.likes ? article.likes.length : 0}
-                            </span>
-                            <span class="card-action">
-                                <i class="far fa-comment"></i>
-                                ${article.comments ? article.comments.length : 0}
-                            </span>
-                        </div>
+                    <div class="meta-actions">
+                        <span><i class="far fa-heart"></i> ${article.likes?.length || 0}</span>
+                        <span><i class="far fa-comment"></i> ${article.comments?.length || 0}</span>
+                        <i class="fas fa-ellipsis-h"></i>
                     </div>
                 </div>
             `;
 
+            // Add author profile section
+            const authorSection = `
+                <div class="card-author">
+                    <img src="${article.authorAvatar}" class="author-avatar" alt="Author">
+                    <span>${article.authorName}</span>
+                </div>
+            `;
+            
+            // Update the card HTML to include author section
+            card.querySelector('.card-meta').insertAdjacentHTML('afterbegin', authorSection);
+
             return card;
         }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            const date = timestamp.toDate();
+            return date.toLocaleDateString('en-US', { 
+                day: 'numeric',
+                month: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        // Add category filtering
+        document.querySelectorAll('.category-tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                document.querySelector('.category-tag.active').classList.remove('active');
+                tag.classList.add('active');
+                currentCategory = tag.dataset.category;
+                lastDoc = null;
+                loadArticles(true);
+            });
+        });
     </script>
     <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
 </body>

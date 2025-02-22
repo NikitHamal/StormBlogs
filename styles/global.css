@@ -1,0 +1,32 @@
+.author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.verified-badge {
+    color: #1da1f2;
+    margin-left: 5px;
+}
+
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.author-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.post-date {
+    font-size: 0.85rem;
+    color: #666;
+} 

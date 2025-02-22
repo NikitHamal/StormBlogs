@@ -13,6 +13,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai@0.3.0";
     
     // Firebase configuration
     const firebaseConfig = {
@@ -24,19 +25,159 @@
       appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
     };
 
-    // Initialize Firebase
+    // Initialize Firebase and Gemini
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
-    const auth = getAuth();
-    let currentUser = null;
+    const genAI = new GoogleGenerativeAI("AIzaSyACk4YyXgd_VOvBlFWV8r17LuwkT1iGfmg");
+    const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.5-flash",
+    systemInstruction: {
+        parts: [{ text: "You are an expert assistant for this article." }]
+    }
+});
 
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
-        if (user) {
-            checkUserLike();
+    let articleContext = '';
+    let chatHistory = [];
+
+    // Make all functions globally available
+    window.checkUserLike = async (articleId) => {
+        if (!auth.currentUser) return false;
+        const articleDoc = await getDoc(doc(db, "posts", articleId));
+        return articleDoc.data()?.likes?.includes(auth.currentUser.uid) || false;
+    };
+
+    // Add this in the global functions section
+window.handleChatInput = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+};
+    // Add this helper function
+function truncateContext(text, maxLength = 30000) {
+    return text.length > maxLength 
+        ? text.substring(0, maxLength) + '... [truncated]' 
+        : text;
+}
+
+    window.generateSummary = async () => {
+        const summaryBtn = document.querySelector('.summary-btn');
+        const summaryContent = document.getElementById('summaryContent');
+        
+        try {
+            summaryBtn.disabled = true;
+            summaryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            
+            const prompt = `Please provide a concise 3-paragraph summary of this article. 
+        Focus on key points and main arguments. 
+        Article: ${articleContext}`;
+            const result = await model.generateContent(prompt);
+            const summary = await result.response.text();
+            
+            summaryContent.innerHTML = `
+                <div class="summary-box">
+                    <h3>AI Summary</h3>
+                    <p>${summary}</p>
+                </div>
+            `;
+        } catch (error) {
+            console.error("Error generating summary:", error);
+            summaryContent.innerHTML = '<p class="error">Failed to generate summary. Please try again.</p>';
+        } finally {
+            summaryBtn.disabled = false;
+            summaryBtn.innerHTML = '<i class="fas fa-robot"></i> Summarize with AI';
         }
-    });
+    };
 
+   // Update the sendMessage function
+   window.sendMessage = async () => {
+    const chatInput = document.getElementById('chatInput');
+    const userMessage = chatInput.value.trim();
+    
+    if (!userMessage) return;
+    
+    try {
+        appendMessage('user', userMessage);
+        chatInput.value = '';
+        appendMessage('typing', '');
+
+        // Structure message properly
+        const chat = model.startChat({
+            history: chatHistory,
+            generationConfig: {
+                maxOutputTokens: 1000,
+            },
+            systemInstruction: {
+                role: "model",
+                parts: [{ text: `You are discussing this article: ${articleContext}` }]
+            }
+        });
+
+        // Send message with proper structure
+        const result = await chat.sendMessage(userMessage);
+        const response = await result.response.text();
+        
+        removeTypingIndicator();
+        appendMessage('ai', response);
+        
+        // Store history correctly
+        chatHistory.push({
+            role: "user",
+            parts: [{ text: userMessage }]
+        });
+        chatHistory.push({
+            role: "model",
+            parts: [{ text: response }]
+        });
+        
+    } catch (error) {
+        console.error("Error sending message:", error);
+        removeTypingIndicator();
+        appendMessage('error', 'Failed to get response. Please try again.');
+    }
+};
+
+    window.appendMessage = (type, content) => {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${type}-message`;
+        
+        if (type === 'typing') {
+            messageDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-content">
+                    ${type === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>'}
+                    <p>${content}</p>
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    window.removeTypingIndicator = () => {
+        const typingIndicator = document.querySelector('.typing-indicator')?.parentElement;
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    };
+
+    // Add this function to handle Enter key submission
+window.handleChatInput = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+};
     // Fetch the post from Firestore
     const urlParams = new URLSearchParams(window.location.search);
     const postId = urlParams.get('id');
@@ -75,9 +216,9 @@
                 document.getElementById("like-count").textContent = post.likes || 0;
                 
                 // Check if user has liked the post
-                if (currentUser) {
+                if (auth.currentUser) {
                     const likedBy = post.likedBy || [];
-                    if (likedBy.includes(currentUser.uid)) {
+                    if (likedBy.includes(auth.currentUser.uid)) {
                         document.querySelector('#like-btn i').classList.remove('far');
                         document.querySelector('#like-btn i').classList.add('fas');
                     }
@@ -85,12 +226,100 @@
 
                 // Load comments
                 await loadComments();
+
+                // Update article context
+                articleContext = `Title: ${post.title}\n\nContent: ${post.content}`;
             }
         } catch (error) {
             console.error("Error loading post:", error);
             document.getElementById("article-content").innerHTML = "<p>Error loading article</p>";
         }
+        // Initialize chat history
+    chatHistory = [
+        {
+            role: "user",
+            parts: [{ text: `ARTICLE CONTEXT: ${articleContext}` }]
+        },
+        {
+            role: "model",
+            parts: [{ text: 'I have read the article. Ask me anything!'}]
+        }
+    ];
     }
+
+    document.addEventListener('dblclick', async (event) => {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+    
+    if (!selectedText || selectedText.split(/\s+/).length > 2) {
+        return; // Ignore selections longer than 2 words
+    }
+
+    try {
+        // Show loading indicator
+        const tooltip = createDefinitionTooltip(event.clientX, event.clientY);
+        tooltip.innerHTML = '<div class="loading">Analyzing...</div>';
+
+        // Get definition from Gemini
+        const prompt = `Define "${selectedText}" in this article's context: ${articleContext}\n` + 
+                      `Provide: 1. Dictionary definition 2. Contextual meaning 3. Example sentence`;
+        
+        const result = await model.generateContent(prompt);
+        const definition = await result.response.text();
+
+        // Display result
+        tooltip.innerHTML = `
+            <div class="definition-card">
+                <h4>${selectedText}</h4>
+                <div class="definition-content">${definition}</div>
+                <button onclick="this.parentElement.remove()" class="close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error("Definition error:", error);
+        tooltip.innerHTML = '<div class="error">Failed to load definition</div>';
+        setTimeout(() => tooltip.remove(), 2000);
+    }
+});
+
+function createDefinitionTooltip(x, y) {
+    const existingTooltip = document.querySelector('.definition-tooltip');
+    if (existingTooltip) existingTooltip.remove();
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'definition-tooltip';
+    tooltip.style.left = `${x + 15}px`;
+    tooltip.style.top = `${y + 15}px`;
+    document.body.appendChild(tooltip);
+    return tooltip;
+}
+
+// Rate limiting
+let lastRequest = 0; 
+document.addEventListener('dblclick', async (event) => {
+    if (Date.now() - lastRequest < 2000) return;
+    lastRequest = Date.now();
+    // ... rest of the code
+});
+
+// Keyboard shortcut support
+document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.key === 'd') {
+        const selection = window.getSelection();
+        // Trigger definition lookup
+    }
+});
+
+// Click-outside-to-close
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.definition-tooltip')) {
+        document.querySelectorAll('.definition-tooltip').forEach(t => t.remove());
+    }
+});
+
 
     async function loadComments() {
         const docRef = doc(db, "posts", postId);
@@ -118,7 +347,7 @@
 
     // Modify like button handler
     document.getElementById('like-btn').addEventListener('click', async () => {
-        if (!currentUser) {
+        if (!auth.currentUser) {
             alert('Please login to like posts');
             window.location.href = 'login.html';
             return;
@@ -129,11 +358,11 @@
         const likedBy = postDoc.data().likedBy || [];
         
         try {
-            if (likedBy.includes(currentUser.uid)) {
+            if (likedBy.includes(auth.currentUser.uid)) {
                 // Unlike
                 await updateDoc(postRef, {
                     likes: increment(-1),
-                    likedBy: arrayRemove(currentUser.uid)
+                    likedBy: arrayRemove(auth.currentUser.uid)
                 });
                 document.querySelector('#like-btn i').classList.remove('fas');
                 document.querySelector('#like-btn i').classList.add('far');
@@ -141,7 +370,7 @@
                 // Like
                 await updateDoc(postRef, {
                     likes: increment(1),
-                    likedBy: arrayUnion(currentUser.uid)
+                    likedBy: arrayUnion(auth.currentUser.uid)
                 });
                 document.querySelector('#like-btn i').classList.remove('far');
                 document.querySelector('#like-btn i').classList.add('fas');
@@ -156,7 +385,7 @@
 
     // Modify comment submission
     document.getElementById('submit-comment').addEventListener('click', async () => {
-        if (!currentUser) {
+        if (!auth.currentUser) {
             alert('Please login to comment');
             window.location.href = 'login.html';
             return;
@@ -171,9 +400,9 @@
                 comments: arrayUnion({
                     text: comment,
                     timestamp: Date.now(),
-                    userId: currentUser.uid,
-                    userName: currentUser.displayName || currentUser.email.split('@')[0],
-                    userPhotoURL: currentUser.photoURL
+                    userId: auth.currentUser.uid,
+                    userName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
+                    userPhotoURL: auth.currentUser.photoURL
                 })
             });
             
@@ -208,7 +437,512 @@
       if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
       return `${seconds} second${seconds > 1 ? 's' : ''}`;
     }
+
+    function renderArticle(data) {
+        // Set category
+        document.getElementById('articleCategory').textContent = data.category || '';
+        
+        // Set title
+        document.getElementById('articleTitle').textContent = data.title;
+        
+        // Set author and date
+        document.getElementById('authorName').textContent = data.authorName || 'Anonymous';
+        document.getElementById('publishDate').textContent = new Date(data.timestamp.toDate()).toLocaleDateString();
+        
+        // Set content
+        const contentDiv = document.getElementById('articleContent');
+        contentDiv.innerHTML = data.content;
+
+        // Render tags
+        const tagsContainer = document.getElementById('articleTags');
+        tagsContainer.innerHTML = '';
+        if (data.themes && data.themes.length > 0) {
+            data.themes.forEach(theme => {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.textContent = theme;
+                tagsContainer.appendChild(tag);
+            });
+        }
+
+        // Set like count
+        const likeCount = document.getElementById('likeCount');
+        likeCount.textContent = data.likes ? data.likes.length : 0;
+
+        // Set comment count
+        const commentCount = document.getElementById('commentCount');
+        commentCount.textContent = data.comments ? data.comments.length : 0;
+
+        // Update like button state
+        const likeButton = document.getElementById('likeButton');
+        if (auth.currentUser && data.likes && data.likes.includes(auth.currentUser.uid)) {
+            likeButton.querySelector('i').classList.remove('far');
+            likeButton.querySelector('i').classList.add('fas');
+        }
+    }
+
+    // Initialize when auth state changes
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const isLiked = await checkUserLike(postId);
+            loadPost();
+        } else {
+            loadPost();
+        }
+    });
   </script>
+
+  <style>
+
+.definition-tooltip {
+    position: fixed;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 16px;
+    max-width: 300px;
+    z-index: 1000;
+}
+
+.definition-card h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+}
+
+.definition-content {
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: #666;
+}
+    .article-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 30px;
+        max-height: 100%; /* Remove any height restrictions */
+    }
+
+    /* Quill content styling */
+    .ql-editor {
+        padding: 0;
+        white-space: pre-wrap; /* Preserve whitespace and wrapping */
+    }
+
+    .ql-editor p {
+        margin: 0 0 1.2em 0; /* Add proper paragraph spacing */
+    }
+
+    .ql-editor h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor blockquote {
+        border-left: 3px solid #ccc;
+        margin: 1.5em 0;
+        padding: 0.5em 0 0.5em 1em; /* Adjusted padding */
+        font-size: 1.1rem;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .ql-editor ul,
+    .ql-editor ol {
+        margin: 0 0 1.2em 0;
+        padding-left: 1.5em;
+    }
+
+    .ql-editor li {
+        margin-bottom: 0.5em;
+    }
+
+    .ql-editor em {
+        font-style: italic;
+    }
+
+    .ql-editor strong {
+        font-weight: 600;
+    }
+
+    .ql-editor u {
+        text-decoration: underline;
+    }
+
+    .ql-editor pre {
+        background: #f5f5f5;
+        padding: 1em;
+        border-radius: 4px;
+        margin: 1.2em 0;
+        overflow-x: auto;
+    }
+
+    .ql-editor code {
+        background: #f5f5f5;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-size: 0.9em;
+        font-family: monospace;
+    }
+
+    /* Ensure proper spacing between different content types */
+    .ql-editor > * + * {
+        margin-top: 1em;
+    }
+
+    /* Adjust container padding */
+    .article-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 40px; /* Increased padding */
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Improve readability with max-width for text */
+    .article-content {
+        max-width: 680px;
+        margin: 0 auto 30px;
+    }
+
+    @media (max-width: 768px) {
+        .article-container {
+            margin: 0;
+            padding: 20px;
+            border-radius: 0;
+        }
+
+        .article-content {
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .ql-editor h1 {
+            font-size: 1.6rem;
+        }
+
+        .ql-editor h2 {
+            font-size: 1.4rem;
+        }
+
+        .ql-editor h3 {
+            font-size: 1.2rem;
+        }
+    }
+
+    .ai-features {
+        margin-top: 40px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+
+    .summary-btn, .chat-btn {
+        background: #333;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .summary-btn:hover, .chat-btn:hover {
+        background: #444;
+    }
+
+    .summary-btn:disabled {
+        background: #666;
+        cursor: not-allowed;
+    }
+
+    .summary-content {
+        margin-top: 20px;
+    }
+
+    .summary-box {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+    }
+
+    .summary-box h3 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+
+    .chat-message {
+        margin-bottom: 15px;
+    }
+
+    .message-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .user-message .message-content {
+        flex-direction: row-reverse;
+    }
+
+    .message-content i {
+        background: #333;
+        color: white;
+        padding: 8px;
+        border-radius: 50%;
+    }
+
+    .message-content p {
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        margin: 0;
+        max-width: 70%;
+    }
+
+    .user-message .message-content p {
+        background: #333;
+        color: white;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-input textarea {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        font-family: inherit;
+        resize: none;
+    }
+
+    .chat-input textarea:focus {
+        outline: none;
+        border-color: #333;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 12px;
+        background: white;
+        border-radius: 12px;
+        width: fit-content;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #333;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+
+    .error-message p {
+        color: #ff4757;
+    }
+
+/* Definition Popup Styles */
+#definitionPopup {
+    position: fixed;
+    z-index: 1000;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 300px;
+    transform: translate(-50%, -100%);
+    margin-top: -10px;
+}
+
+.popup-content {
+    padding: 15px;
+    position: relative;
+}
+
+.close-popup {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+/* Quiz Styles */
+.quiz-section {
+    margin: 40px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.quiz-btn {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    transition: all 0.3s;
+}
+
+.quiz-btn:hover {
+    background: #444;
+}
+
+.quiz-question {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.option:hover {
+    background: #f5f5f5;
+}
+
+.option.correct {
+    border-color: #4CAF50;
+    background: #E8F5E9;
+}
+
+.option.incorrect {
+    border-color: #FF5252;
+    background: #FFEBEE;
+}
+
+.explanation {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.correct-text {
+    color: #4CAF50;
+}
+
+.incorrect-text {
+    color: #FF5252;
+}
+
+.quiz-score {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: #E8F5E9;
+    border-radius: 8px;
+}
+
+.check-answers-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+.check-answers-btn:hover {
+    background: #444;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.error {
+    text-align: center;
+    padding: 20px;
+    color: #FF5252;
+}
+  </style>
 
 </head>
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333; scroll-behavior: smooth;">
@@ -265,6 +999,31 @@
         
         <!-- Comments List -->
         <div id="comments-list" style="margin-top: 24px;"></div>
+      </div>
+
+      <!-- Add this after the article content -->
+      <div class="ai-features">
+          <div class="article-summary" id="summarySection">
+              <button onclick="generateSummary()" class="summary-btn">
+                  <i class="fas fa-robot"></i> Summarize with AI
+              </button>
+              <div id="summaryContent" class="summary-content"></div>
+          </div>
+
+          <div class="article-chat" id="chatSection">
+              <div class="chat-messages" id="chatMessages"></div>
+              <div class="chat-input">
+                  <textarea 
+                      id="chatInput" 
+                      placeholder="Ask anything about this article..."
+                      rows="3"
+                      onkeydown="handleChatInput(event)"
+                  ></textarea>
+                  <button onclick="sendMessage()" class="chat-btn">
+                      <i class="fas fa-paper-plane"></i>
+                  </button>
+              </div>
+          </div>
       </div>
     </div>
   </main>
