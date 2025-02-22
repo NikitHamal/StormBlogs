@@ -328,3 +328,386 @@
     </script>
 </body>
 </html>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #faf8f7;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .auth-header {
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+        }
+
+        .auth-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            color: #333;
+        }
+
+        .auth-subtitle {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            color: #666;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .auth-tab.active {
+            color: #333;
+        }
+
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #333;
+        }
+
+        .auth-form {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #333;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 12px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .auth-button:hover {
+            background: #444;
+        }
+
+        .google-button {
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #333;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .google-button:hover {
+            background: #f8f9fa;
+            border-color: #ddd;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .loading.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #333;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.active {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+
+        @media (max-width: 480px) {
+            .auth-container {
+                margin: 20px;
+            }
+
+            .auth-header {
+                padding: 20px;
+            }
+
+            .auth-form {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="auth-title">Welcome to StormBlogs</h1>
+            <p class="auth-subtitle" id="authSubtitle">Sign in to continue</p>
+        </div>
+
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchMode('signin')" id="signinTab">Sign In</div>
+            <div class="auth-tab" onclick="switchMode('signup')" id="signupTab">Sign Up</div>
+        </div>
+
+        <div class="auth-form">
+            <div class="input-group">
+                <label for="emailInput">Email</label>
+                <input type="email" id="emailInput" placeholder="Enter your email">
+            </div>
+
+            <div class="input-group">
+                <label for="passwordInput">Password</label>
+                <input type="password" id="passwordInput" placeholder="Enter your password">
+            </div>
+
+            <button class="auth-button" onclick="handleAuth()" id="authButton">Sign In</button>
+            <button class="google-button" onclick="signInWithGoogle()">
+                <i class="fab fa-google"></i>
+                Continue with Google
+            </button>
+        </div>
+    </div>
+
+    <div class="loading" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentMode = 'signin';
+
+        window.switchMode = (mode) => {
+            currentMode = mode;
+            document.getElementById('signinTab').classList.toggle('active', mode === 'signin');
+            document.getElementById('signupTab').classList.toggle('active', mode === 'signup');
+            document.getElementById('authSubtitle').textContent = mode === 'signin' ? 'Sign in to continue' : 'Create your account';
+            document.getElementById('authButton').textContent = mode === 'signin' ? 'Sign In' : 'Sign Up';
+        };
+
+        window.handleAuth = async () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+
+            if (!email || !password) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+
+            showLoading();
+            try {
+                const authFunction = currentMode === 'signin' ? signInWithEmailAndPassword : createUserWithEmailAndPassword;
+                const userCredential = await authFunction(auth, email, password);
+                showToast(`${currentMode === 'signin' ? 'Signed in' : 'Account created'} successfully!`, 'success');
+                handleAuthSuccess(userCredential.user);
+            } catch (error) {
+                hideLoading();
+                console.error("Auth error:", error);
+                showToast(getErrorMessage(error), 'error');
+            }
+        };
+
+        window.signInWithGoogle = async () => {
+            showLoading();
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                showToast('Signed in with Google successfully!', 'success');
+                handleAuthSuccess(result.user);
+            } catch (error) {
+                hideLoading();
+                console.error("Google sign in error:", error);
+                showToast(getErrorMessage(error), 'error');
+            }
+        };
+
+        async function handleAuthSuccess(user) {
+            try {
+                const docSnapshot = await getDoc(doc(db, "users", user.uid));
+                hideLoading();
+                window.location.href = docSnapshot.exists() ? 'articles.html' : 'profile.html';
+            } catch (error) {
+                hideLoading();
+                console.error("Error checking profile:", error);
+                showToast('Error checking profile status', 'error');
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('active');
+            setTimeout(() => toast.classList.remove('active'), 3000);
+        }
+
+        function getErrorMessage(error) {
+            switch (error.code) {
+                case 'auth/invalid-email':
+                    return 'Invalid email address';
+                case 'auth/user-disabled':
+                    return 'This account has been disabled';
+                case 'auth/user-not-found':
+                    return 'No account found with this email';
+                case 'auth/wrong-password':
+                    return 'Incorrect password';
+                case 'auth/email-already-in-use':
+                    return 'Email already in use';
+                case 'auth/weak-password':
+                    return 'Password should be at least 6 characters';
+                default:
+                    return 'An error occurred. Please try again';
+            }
+        }
+
+        // Make functions available globally
+        window.showLoading = showLoading;
+        window.hideLoading = hideLoading;
+        window.showToast = showToast;
+    </script>
+</body>
+</html> 
+>>>>>>> 76e0501c020165fe7d358d2082e07d0f846db602

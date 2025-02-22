@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -14,6 +14,9 @@
     import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
     import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai@0.3.0";
+    import { getFirestore, doc, getDoc, updateDoc, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai@0.3.0";
     
     // Firebase configuration
     const firebaseConfig = {
@@ -26,7 +29,9 @@
     };
 
     // Initialize Firebase and Gemini
+    // Initialize Firebase and Gemini
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
     const genAI = new GoogleGenerativeAI("AIzaSyACk4YyXgd_VOvBlFWV8r17LuwkT1iGfmg");
@@ -437,6 +442,59 @@ document.addEventListener('click', (e) => {
       if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
       return `${seconds} second${seconds > 1 ? 's' : ''}`;
     }
+
+    function renderArticle(data) {
+        // Set category
+        document.getElementById('articleCategory').textContent = data.category || '';
+        
+        // Set title
+        document.getElementById('articleTitle').textContent = data.title;
+        
+        // Set author and date
+        document.getElementById('authorName').textContent = data.authorName || 'Anonymous';
+        document.getElementById('publishDate').textContent = new Date(data.timestamp.toDate()).toLocaleDateString();
+        
+        // Set content
+        const contentDiv = document.getElementById('articleContent');
+        contentDiv.innerHTML = data.content;
+
+        // Render tags
+        const tagsContainer = document.getElementById('articleTags');
+        tagsContainer.innerHTML = '';
+        if (data.themes && data.themes.length > 0) {
+            data.themes.forEach(theme => {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.textContent = theme;
+                tagsContainer.appendChild(tag);
+            });
+        }
+
+        // Set like count
+        const likeCount = document.getElementById('likeCount');
+        likeCount.textContent = data.likes ? data.likes.length : 0;
+
+        // Set comment count
+        const commentCount = document.getElementById('commentCount');
+        commentCount.textContent = data.comments ? data.comments.length : 0;
+
+        // Update like button state
+        const likeButton = document.getElementById('likeButton');
+        if (auth.currentUser && data.likes && data.likes.includes(auth.currentUser.uid)) {
+            likeButton.querySelector('i').classList.remove('far');
+            likeButton.querySelector('i').classList.add('fas');
+        }
+    }
+
+    // Initialize when auth state changes
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            const isLiked = await checkUserLike(postId);
+            loadPost();
+        } else {
+            loadPost();
+        }
+    });
 
     function renderArticle(data) {
         // Set category
@@ -1025,8 +1083,69 @@ document.addEventListener('click', (e) => {
               </div>
           </div>
       </div>
+
+      <!-- Like and Comment Section -->
+      <div style="margin-top: 32px; border-top: 1px solid #ddd; padding-top: 16px;">
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <button id="like-btn" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border: none; background: #f0f0f0; border-radius: 20px; cursor: pointer;">
+            <i class="far fa-heart"></i>
+            <span id="like-count">0</span>
+          </button>
+          <button id="comment-btn" style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border: none; background: #f0f0f0; border-radius: 20px; cursor: pointer;">
+            <i class="far fa-comment"></i>
+            <span id="comment-count">0</span>
+          </button>
+        </div>
+        
+        <!-- Comment Form -->
+        <div id="comment-section" style="margin-top: 16px;">
+          <textarea id="comment-input" placeholder="Write a comment..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 8px; font-family: 'Poppins', serif;"></textarea>
+          <button id="submit-comment" style="padding: 8px 16px; background-color: #111111; color: white; border: none; border-radius: 20px; cursor: pointer;">
+            Post Comment
+          </button>
+        </div>
+        
+        <!-- Comments List -->
+        <div id="comments-list" style="margin-top: 24px;"></div>
+      </div>
+
+      <!-- Add this after the article content -->
+      <div class="ai-features">
+          <div class="article-summary" id="summarySection">
+              <button onclick="generateSummary()" class="summary-btn">
+                  <i class="fas fa-robot"></i> Summarize with AI
+              </button>
+              <div id="summaryContent" class="summary-content"></div>
+          </div>
+
+          <div class="article-chat" id="chatSection">
+              <div class="chat-messages" id="chatMessages"></div>
+              <div class="chat-input">
+                  <textarea 
+                      id="chatInput" 
+                      placeholder="Ask anything about this article..."
+                      rows="3"
+                      onkeydown="handleChatInput(event)"
+                  ></textarea>
+                  <button onclick="sendMessage()" class="chat-btn">
+                      <i class="fas fa-paper-plane"></i>
+                  </button>
+              </div>
+          </div>
+      </div>
     </div>
   </main>
+  
+  <div id="ai-bottom-sheet" class="bottom-sheet">
+    <div class="sheet-header">
+        <div class="drag-handle"></div>
+        <h3>Article Assistant</h3>
+        <button class="close-btn" onclick="closeBottomSheet()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div id="sheet-content" class="sheet-content"></div>
+</div>
 
 </body>
 </html>
