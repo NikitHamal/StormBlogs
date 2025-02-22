@@ -580,7 +580,7 @@
 
         .social-input i {
             width: 24px;
-            text-align: center;
+                text-align: center;
             color: #666;
         }
 
@@ -610,8 +610,8 @@
         .avatar-upload {
             position: relative;
             width: 120px;
-            margin: 0 auto;
-        }
+                margin: 0 auto;
+            }
 
         .avatar-edit {
             position: absolute;
@@ -768,8 +768,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-
+            </div>
+            
         <div class="tabs">
             <div class="tab active" data-tab="articles">
                 <i class="fas fa-book"></i> My Articles
@@ -786,8 +786,8 @@
             <div class="tab" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
             </div>
-        </div>
-
+                </div>
+                
         <div class="section active" id="articles">
             <div class="article-grid" id="articlesGrid">
                 <!-- Articles will be dynamically added here -->
@@ -798,7 +798,7 @@
             <div class="draft-grid" id="draftsGrid">
                 <!-- Drafts will be dynamically added here -->
                     </div>
-                </div>
+                    </div>
 
         <div class="section" id="insights">
             <div class="insights-grid">
@@ -861,8 +861,8 @@
                         <!-- Will be populated with chart -->
                     </div>
                 </div>
-            </div>
-        </div>
+                    </div>
+                </div>
 
         <div class="section" id="edit">
             <form class="edit-form" id="editProfileForm">
@@ -874,7 +874,7 @@
                     <label for="username">Username *</label>
                     <input type="text" id="username" name="username" required pattern="[a-zA-Z0-9_]{3,20}" 
                         title="Username must be 3-20 characters long and can only contain letters, numbers, and underscores">
-                </div>
+            </div>
                 <div class="form-group">
                     <label for="bio">Bio</label>
                     <textarea id="bio" name="bio" rows="4" placeholder="Tell us about yourself..."></textarea>
@@ -1201,7 +1201,7 @@
                                          title="Click to use this picture">
                                     <div class="history-date">
                                         ${new Date(pic.timestamp).toLocaleDateString()}
-                                    </div>
+                        </div>
                                 </div>
                             `).join('');
                     } else {
@@ -1261,37 +1261,77 @@
 
                     // Load user's articles
                     try {
+                        // First check if user has any posts without ordering
+                        const basicQuery = query(
+                        collection(db, "posts"),
+                            where("authorId", "==", user.uid)
+                        );
+                        
+                        const checkSnapshot = await getDocs(basicQuery);
+                        const articlesGrid = document.getElementById('articlesGrid');
+                        
+                        if (checkSnapshot.empty) {
+                            articlesGrid.innerHTML = `
+                                <div style="text-align: center; padding: 2rem;">
+                                    <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                    <p style="color: #666;">No articles yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                        // If user has posts, proceed with ordered query
                         const articlesQuery = query(
                             collection(db, "posts"),
                             where("authorId", "==", user.uid),
                             orderBy("timestamp", "desc")
                         );
-                        const articlesSnapshot = await getDocs(articlesQuery);
-                        const articlesGrid = document.getElementById('articlesGrid');
-                        articlesGrid.innerHTML = '';
 
-                        if (articlesSnapshot.empty) {
-                            articlesGrid.innerHTML = '<p style="text-align: center; color: #666;">No articles yet</p>';
-                        } else {
-                            articlesSnapshot.forEach(doc => {
-                                const article = doc.data();
-                                const card = createArticleCard(doc.id, article);
-                                articlesGrid.appendChild(card);
-                            });
+                        try {
+                            const articlesSnapshot = await getDocs(articlesQuery);
+                            articlesGrid.innerHTML = '';
+
+                            if (articlesSnapshot.empty) {
+                                articlesGrid.innerHTML = `
+                                    <div style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                        <p style="color: #666;">No articles yet</p>
+                                    </div>
+                                `;
+                            } else {
+                                articlesSnapshot.forEach(doc => {
+                                    const article = doc.data();
+                                    const card = createArticleCard(doc.id, article);
+                                    articlesGrid.appendChild(card);
+                                });
+                            }
+            } catch (error) {
+                            // Handle index error gracefully
+                            if (error.code === 'failed-precondition' || error.message.includes('requires an index')) {
+                                articlesGrid.innerHTML = `
+                                    <div style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                        <p style="color: #666;">No articles yet</p>
+                                    </div>
+                                `;
+                            } else {
+                                console.error('Error loading articles:', error);
+                                articlesGrid.innerHTML = `
+                                    <div style="text-align: center; padding: 2rem;">
+                                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                                        <p style="color: #666;">Error loading articles. Please try again later.</p>
+                    </div>
+                `;
+            }
                         }
                     } catch (error) {
-                        if (error.code === 'failed-precondition' || error.message.includes('requires an index')) {
-                            const articlesGrid = document.getElementById('articlesGrid');
-                            articlesGrid.innerHTML = `
-                                <div style="text-align: center; color: #666; padding: 20px;">
-                                    <p>No articles found</p>
-                                </div>
-                            `;
-                            console.error('Error loading articles:', error);
-                        } else {
-                            console.error('Error loading articles:', error);
-                            showToast('Error loading articles', 'error');
-                        }
+                        console.error('Error checking for articles:', error);
+                        document.getElementById('articlesGrid').innerHTML = `
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                                <p style="color: #666;">Error loading articles. Please try again later.</p>
+                            </div>
+                        `;
                     }
 
                     hideLoading();
