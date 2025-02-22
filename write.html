@@ -1,3 +1,86 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="write.css">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+</head>
+<body>
+    <div class="write-container">
+        <div class="editor-header">
+            <input type="text" id="titleInput" class="title-input" placeholder="Write your story title here...">
+            <div class="meta-inputs">
+                <div class="input-group">
+                    <label for="categoryInput">Category</label>
+                    <select id="categoryInput">
+                        <option value="">Select a category</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Food">Food</option>
+                        <option value="Health">Health</option>
+                        <option value="Philosophy">Philosophy</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Themes</label>
+                    <input type="text" id="themeInput" placeholder="Add themes (e.g., AI, Web Development, Future)">
+                    <div id="themeTags" class="theme-tags"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-toolbar">
+            <div class="ai-tools-group">
+                <button class="ai-tool-btn" data-action="continue">
+                    <i class="fas fa-pencil"></i>
+                    Continue Writing
+                </button>
+                <button class="ai-tool-btn" data-action="improve">
+                    <i class="fas fa-magic"></i>
+                    Improve
+                </button>
+                <button class="ai-tool-btn" data-action="summarize">
+                    <i class="fas fa-list"></i>
+                    Summarize
+                </button>
+                <button class="ai-tool-btn" data-action="expand">
+                    <i class="fas fa-expand-alt"></i>
+                    Expand
+                </button>
+            </div>
+            <div class="ai-status" id="aiStatus">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Processing with AI...</span>
+            </div>
+        </div>
+
+        <div id="editor"></div>
+
+        <div class="action-buttons">
+            <button onclick="previewPost()" class="action-button preview-button">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button onclick="publishPost()" id="publishButton" class="action-button publish-button">
+                <i class="fas fa-paper-plane"></i> Publish
+            </button>
+        </div>
+    </div>
+
+    <div id="saveIndicator" class="save-indicator">
+        <i class="fas fa-check-circle"></i>
+        <span>Changes saved</span>
+    </div>
+
+    <script type="module" src="write.js"></script>
+</body>
+=======
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -480,4 +563,5 @@
 
     <<script src="https://cdn.quilljs.com/2.0.3/quill.min.js"></script>
 </body>
+>>>>>>> 76e0501c020165fe7d358d2082e07d0f846db602
 </html>
