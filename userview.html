@@ -744,7 +744,32 @@
 
             isLoadingMore = true;
             try {
-                let articlesQuery = query(
+                let articlesQuery;
+                
+                // First try to get posts without ordering to check if user has any
+                const basicQuery = query(
+                    collection(db, "posts"),
+                    where("authorId", "==", userId)
+                );
+                
+                const checkSnapshot = await getDocs(basicQuery);
+                
+                if (checkSnapshot.empty) {
+                    // User has no posts
+                    const articlesContainer = document.getElementById('articlesContainer');
+                    articlesContainer.innerHTML = `
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                            <p style="color: #666;">No articles yet</p>
+                        </div>
+                    `;
+                    hasMoreArticles = false;
+                    isLoadingMore = false;
+                    return;
+                }
+
+                // If user has posts, proceed with ordered query
+                articlesQuery = query(
                     collection(db, "posts"),
                     where("authorId", "==", userId),
                     orderBy("timestamp", "desc"),
@@ -766,8 +791,12 @@
                 if (articlesSnapshot.empty) {
                     hasMoreArticles = false;
                     if (!loadMore) {
-                        document.getElementById('articlesContainer').innerHTML = 
-                            '<p style="text-align: center; color: #666;">No articles yet</p>';
+                        document.getElementById('articlesContainer').innerHTML = `
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                <p style="color: #666;">No articles yet</p>
+                            </div>
+                        `;
                     }
                     return;
                 }
@@ -824,7 +853,24 @@
 
             } catch (error) {
                 console.error('Error loading articles:', error);
-                showError('Failed to load articles');
+                const articlesContainer = document.getElementById('articlesContainer');
+                
+                // Check if the error is about missing index
+                if (error.code === 'failed-precondition' || error.message.includes('requires an index')) {
+                    articlesContainer.innerHTML = `
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                            <p style="color: #666;">No articles yet</p>
+                        </div>
+                    `;
+                } else {
+                    articlesContainer.innerHTML = `
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                            <p style="color: #666;">Error loading articles. Please try again later.</p>
+                        </div>
+                    `;
+                }
             } finally {
                 isLoadingMore = false;
             }
