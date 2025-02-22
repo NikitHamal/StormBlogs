@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Code Editor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --bg-dark: #1e1e1e;
+            --bg-darker: #252526;
+            --border-color: #3c3c3c;
+            --text-color: #e0e0e0;
+            --hover-color: #2a2a2a;
+            --toolbar-height: 40px;
+            --statusbar-height: 25px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #toolbar {
+            height: var(--toolbar-height);
+            background-color: var(--bg-darker);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            gap: 1rem;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            padding: 0 0.5rem;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .toolbar-button {
+            padding: 0.25rem 0.75rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .toolbar-button:hover {
+            background: var(--hover-color);
+            transform: translateY(-1px);
+        }
+
+        .toolbar-button i {
+            font-size: 0.9em;
+        }
+
+        #main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #editor-container {
+            flex: 1;
+            position: relative;
+            transition: width 0.3s ease;
+        }
+
+        #editor-container.preview-active {
+            width: 50%;
+        }
+
+        #statusbar {
+            height: var(--statusbar-height);
+            background-color: var(--bg-darker);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            font-size: 0.8rem;
+            color: var(--text-color);
+            justify-content: space-between;
+        }
+
+        .statusbar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #language-select {
+            background: var(--bg-dark);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.25rem;
+            font-size: 0.8rem;
+        }
+
+        #chat-container {
+            width: 400px;
+            background-color: var(--bg-darker);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+
+        #chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.3s ease forwards;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .message:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            background-color: #2d2d2d;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .ai-message {
+            background-color: #303030;
+            border-left: 4px solid #2196F3;
+        }
+
+        .code-block-container {
+            position: relative;
+            margin: 1rem 0;
+        }
+
+        .code-block {
+            background-color: var(--bg-dark);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            font-family: 'Fira Code', monospace;
+            white-space: pre-wrap;
+            border: 1px solid var(--border-color);
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--bg-darker);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0;
+        }
+
+        .code-block-container:hover .copy-button {
+            opacity: 1;
+        }
+
+        .copy-button:hover {
+            background: var(--hover-color);
+            transform: translateY(-1px);
+        }
+
+        .copy-button i {
+            font-size: 0.9em;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        .status-message {
+            color: var(--primary-color);
+            font-style: italic;
+            margin-bottom: 0.5rem;
+            animation: fadeIn 0.3s ease forwards;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #chat-input-container {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-darker);
+        }
+
+        #chat-input {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-color);
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        #chat-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .hljs {
+            background: transparent !important;
+        }
+
+        /* Markdown Styles */
+        .markdown-content {
+            line-height: 1.6;
+        }
+
+        .markdown-content a {
+            color: #64B5F6;
+            text-decoration: none;
+            border-bottom: 1px dashed #64B5F6;
+            transition: all 0.2s ease;
+        }
+
+        .markdown-content a:hover {
+            color: #2196F3;
+            border-bottom-style: solid;
+        }
+
+        .markdown-content strong {
+            color: #81C784;
+            font-weight: 600;
+        }
+
+        .markdown-content em {
+            color: #FFB74D;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            color: #81C784;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            padding-left: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .markdown-content li {
+            margin: 0.5rem 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid #64B5F6;
+            margin: 1rem 0;
+            padding: 0.5rem 1rem;
+            background-color: rgba(33, 150, 243, 0.1);
+            border-radius: 4px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--bg-darker);
+            color: var(--text-color);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast i {
+            color: var(--primary-color);
+        }
+
+        .model-selector {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-darker);
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .model-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-dark);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .model-button:hover {
+            background: var(--hover-color);
+            transform: translateY(-1px);
+        }
+
+        .model-button.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .model-info {
+            position: absolute;
+            top: 4rem;
+            right: 1rem;
+            background: var(--bg-darker);
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+
+        .model-info.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* File input styling */
+        #file-input {
+            display: none;
+        }
+
+        /* Run output panel */
+        #output-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: var(--bg-darker);
+            border-top: 1px solid var(--border-color);
+            display: none;
+            flex-direction: column;
+        }
+
+        #output-panel.show {
+            display: flex;
+        }
+
+        #output-header {
+            padding: 0.5rem;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #output-content {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+            font-family: 'Fira Code', monospace;
+            white-space: pre-wrap;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 0.25rem;
+            font-size: 1.1rem;
+        }
+
+        .close-button:hover {
+            color: #f44336;
+        }
+
+        #preview-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            background: var(--bg-darker);
+            border-left: 1px solid var(--border-color);
+            display: none;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        #preview-panel.show {
+            display: flex;
+        }
+
+        #preview-header {
+            padding: 0.5rem;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        #preview-frame {
+            flex: 1;
+            border: none;
+            background: white;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-button" id="new-file">
+                    <i class="fas fa-file"></i>
+                    New
+                </button>
+                <button class="toolbar-button" id="open-file">
+                    <i class="fas fa-folder-open"></i>
+                    Open
+                </button>
+                <button class="toolbar-button" id="save-file">
+                    <i class="fas fa-save"></i>
+                    Save
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-button" id="run-code">
+                    <i class="fas fa-play"></i>
+                    Run
+                </button>
+                <button class="toolbar-button" id="stop-code">
+                    <i class="fas fa-stop"></i>
+                    Stop
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <select id="language-select">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="java">Java</option>
+                    <option value="csharp">C#</option>
+                    <option value="cpp">C++</option>
+                </select>
+            </div>
+            <div class="toolbar-group model-selector">
+                <button class="model-button active" data-model="gemini">Gemini 1.5</button>
+                <button class="model-button" data-model="claude">Claude 3.5</button>
+            </div>
+        </div>
+        
+        <div id="main-content">
+            <div id="editor-container">
+                <input type="file" id="file-input" />
+                <div id="preview-panel">
+                    <div id="preview-header">
+                        <span>Live Preview</span>
+                        <div class="preview-controls">
+                            <button class="toolbar-button" id="preview-external" title="Open in new window">
+                                <i class="fas fa-external-link-alt"></i>
+                            </button>
+                            <button class="toolbar-button" id="preview-refresh" title="Refresh preview">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="close-button" id="close-preview">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <iframe id="preview-frame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+                </div>
+                <div id="output-panel">
+                    <div id="output-header">
+                        <span>Output</span>
+                        <button class="close-button" id="close-output">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div id="output-content"></div>
+                </div>
+            </div>
+            <div id="chat-container">
+                <div id="chat-messages"></div>
+                <div id="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Ask AI anything... (Press Enter to send)">
+                </div>
+            </div>
+        </div>
+
+        <div id="statusbar">
+            <div class="statusbar-item">
+                <i class="fas fa-code"></i>
+                <span id="cursor-position">Ln 1, Col 1</span>
+            </div>
+            <div class="statusbar-item">
+                <span id="file-info">No file opened</span>
+            </div>
+        </div>
+    </div>
+    <div class="model-info" id="model-info">Using Gemini 1.5</div>
+    <div class="toast" id="copy-toast">
+        <i class="fas fa-check-circle"></i>
+        <span>Code copied to clipboard!</span>
+    </div>
+    <script src="editor.js"></script>
+</body>
+</html>

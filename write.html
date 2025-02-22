@@ -3,99 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create a New Post - StormBlogs</title>
+    <title>Write - StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        .category-tag {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            background-color: #f0f0f0;
+            color: #333;
+            cursor: pointer;
+            border: none;
+            margin: 4px;
+            transition: all 0.2s;
+        }
 
-    <!-- Firebase SDK for modular use -->
+        .category-tag.selected {
+            background-color: #111;
+            color: white;
+        }
+
+        .preview-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-top: 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #content {
+            min-height: 300px;
+            line-height: 1.6;
+            font-family: 'Poppins', serif;
+        }
+
+        .publish-button {
+            background-color: #111;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .publish-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .publish-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+
     <script type="module">
-        // Firebase SDK imports
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js';
         import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js';
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
-        authDomain: "storm-blogs.firebaseapp.com",
-        projectId: "storm-blogs",
-        storageBucket: "storm-blogs.firebasestorage.app",
-        messagingSenderId: "158567556221",
-        appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth();
 
+        // Check authentication state
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // Redirect to login if not authenticated
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Update user info in header
+            document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
+            document.getElementById('user-avatar').src = user.photoURL || 'profile.jpg';
+            document.getElementById('user-info').style.display = 'flex';
+        });
+
+        // Handle form submission
         document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("post-form").addEventListener("submit", async function(event) {
-                event.preventDefault();
+            document.getElementById("post-form").addEventListener("submit", async function(e) {
+                e.preventDefault();
+                
+                const submitButton = document.getElementById("submit-button");
+                submitButton.disabled = true;
+                submitButton.textContent = "Publishing...";
 
-                // Gather form data
-                const title = document.getElementById("title").value;
-                const category = document.getElementById("category").value;
-                const content = document.getElementById("content").value;
-
-                if (!title || !category || !content) {
-                    alert("Please fill in all fields.");
-                    return;
-                }
-
-                const newPost = {
-                    title: title,
-                    category: category,
-                    content: content,
-                    timestamp: Date.now(),
-                    views: 0,
-                    likes: 0,
-                    comments: 0
-                };
-
-                // Add the new post to Firestore
                 try {
+                    const user = auth.currentUser;
+                    if (!user) {
+                        throw new Error("You must be logged in to publish");
+                    }
+
+                    const title = document.getElementById("title").value;
+                    const category = document.getElementById("category").value;
+                    const content = document.getElementById("content").value;
+                    const preview = content.substring(0, 150) + (content.length > 150 ? '...' : '');
+
+                    const newPost = {
+                        title,
+                        category,
+                        content,
+                        preview,
+                        timestamp: Date.now(),
+                        authorId: user.uid,
+                        authorName: user.displayName || user.email.split('@')[0],
+                        authorPhoto: user.photoURL || 'profile.jpg',
+                        likes: 0,
+                        likedBy: [],
+                        comments: [],
+                        featured: false
+                    };
+
                     await addDoc(collection(db, "posts"), newPost);
-                    alert("Post published successfully!");
-                    window.location.href = "index.html"; // Redirect to homepage
+                    showNotification("Post published successfully!");
+                    setTimeout(() => {
+                        window.location.href = "articles.html";
+                    }, 1500);
+
                 } catch (error) {
                     console.error("Error adding post: ", error);
-                    alert("An error occurred while publishing the post.");
+                    showNotification("Error publishing post. Please try again.", true);
+                    submitButton.disabled = false;
+                    submitButton.textContent = "Publish Post";
                 }
+            });
+        });
+
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? "#ff4444" : "#4CAF50";
+            notification.style.display = "block";
+            setTimeout(() => {
+                notification.style.display = "none";
+            }, 3000);
+        }
+
+        // Add category selection handling
+        document.querySelectorAll('.category-tag').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove selected class from all buttons
+                document.querySelectorAll('.category-tag').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked button
+                button.classList.add('selected');
+                
+                // Update hidden input
+                document.getElementById('category').value = button.dataset.category;
             });
         });
     </script>
 </head>
-<body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; color: #333;">
-
-<header>
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; margin: 32px; margin-top: 36px;">
-            <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height: 26px; width: 26px; cursor: pointer;">
-            <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor: pointer;">/Storm Blogs</h4>
+<body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333;">
+    <header>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 32px; margin-bottom:0px;">
+            <div style="display: flex; align-items: center;">
+                <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
+                <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
+            </div>
+            <div style="display: flex; align-items: center; gap: 24px;">
+                <nav style="display: flex; gap: 24px;">
+                    <a href="index.html" style="text-decoration: none; color: #111111; font-weight: 500;">Home</a>
+                    <a href="articles.html" style="text-decoration: none; color: #111111; font-weight: 500;">Articles</a>
+                    <a href="write.html" style="text-decoration: none; color: #111111; font-weight: 500;">Write</a>
+                </nav>
+                <div id="user-info" style="display: none; align-items: center; gap: 8px;">
+                    <img id="user-avatar" src="" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <span id="user-name" style="font-weight: 500;"></span>
+                </div>
+            </div>
         </div>
-    </div>
-</header>
+    </header>
 
-<main style="max-width: 800px; margin: auto; padding: 32px;">
-    <h3 style="text-align: center;">Create a New Post</h3>
+    <div id="notification" style="display: none; position: fixed; top: 20px; right: 20px; padding: 16px; border-radius: 8px; color: white; z-index: 1000;"></div>
 
-    <form id="post-form">
-        <div style="margin-bottom: 16px;">
-            <label for="title" style="display: block; font-weight: 600; margin-bottom: 8px;">Title</label>
-            <input type="text" id="title" name="title" required style="width: 100%; padding: 8px; font-size: 16px;">
+    <main style="max-width: 800px; margin: 32px auto; padding: 32px;">
+        <div style="background: white; padding: 32px; border-radius: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h2 style="margin-top: 0; margin-bottom: 24px;">Create Your Story</h2>
+
+            <form id="post-form">
+                <div style="margin-bottom: 24px;">
+                    <input type="text" id="title" placeholder="Enter your title" required 
+                        style="width: 100%; padding: 16px; font-size: 24px; border: none; border-bottom: 2px solid #ddd; outline: none; font-family: 'Poppins', serif;">
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <h4 style="margin-bottom: 12px;">Select Category</h4>
+                    <div id="categories" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <button type="button" class="category-tag" data-category="Technology">Technology</button>
+                        <button type="button" class="category-tag" data-category="Philosophy">Philosophy</button>
+                        <button type="button" class="category-tag" data-category="Politics">Politics</button>
+                        <button type="button" class="category-tag" data-category="News">News</button>
+                        <button type="button" class="category-tag" data-category="Spirituality">Spirituality</button>
+                        <button type="button" class="category-tag" data-category="Religion">Religion</button>
+                        <button type="button" class="category-tag" data-category="Science">Science</button>
+                        <button type="button" class="category-tag" data-category="Health">Health</button>
+                        <button type="button" class="category-tag" data-category="Business">Business</button>
+                        <button type="button" class="category-tag" data-category="Arts">Arts</button>
+                        <button type="button" class="category-tag" data-category="Education">Education</button>
+                        <button type="button" class="category-tag" data-category="Travel">Travel</button>
+                        <button type="button" class="category-tag" data-category="Food">Food</button>
+                        <button type="button" class="category-tag" data-category="Lifestyle">Lifestyle</button>
+                    </div>
+                    <input type="hidden" id="category" required>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <textarea id="content" placeholder="Start writing your story..." required
+                        style="width: 100%; padding: 16px; font-size: 16px; border: none; outline: none; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <button type="submit" id="submit-button" class="publish-button">
+                        Publish Story
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <div style="margin-bottom: 16px;">
-            <label for="category" style="display: block; font-weight: 600; margin-bottom: 8px;">Category</label>
-            <input type="text" id="category" name="category" required style="width: 100%; padding: 8px; font-size: 16px;">
-        </div>
-
-        <div style="margin-bottom: 16px;">
-            <label for="content" style="display: block; font-weight: 600; margin-bottom: 8px;">Content</label>
-            <textarea id="content" name="content" rows="6" required style="width: 100%; padding: 8px; font-size: 16px;"></textarea>
-        </div>
-
-        <button type="submit" style="background-color: #007BFF; color: white; padding: 12px 24px; font-size: 16px; border: none; cursor: pointer; width: 100%;">Publish Post</button>
-    </form>
-</main>
-
+    </main>
 </body>
 </html>

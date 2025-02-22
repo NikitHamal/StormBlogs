@@ -3,15 +3,844 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StormBlogs</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Articles - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
-     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js';
-        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js';
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #FDF7F2;
+        }
 
-        // Firebase configuration
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .search-section {
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .search-container {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .filter-button {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 30px;
+            background: white;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+        }
+
+        .filter-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .category-tag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .category-tag.active {
+            background: #111;
+            color: white;
+        }
+
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .article-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .article-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 20px 20px 0 0;
+            display: block;
+        }
+
+        .article-image.has-image {
+            display: block;
+        }
+
+        .article-content {
+            padding: 20px;
+        }
+
+        .article-category {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .article-title {
+            margin: 0;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: #111;
+        }
+
+        .article-preview {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .article-author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .author-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #111;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #load-more {
+            display: block;
+            margin: 40px auto;
+            padding: 15px 30px;
+            background: #111;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: transform 0.2s ease;
+        }
+
+        #load-more:hover {
+            transform: translateY(-2px);
+        }
+
+        .article-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 15px;
+            margin-top: 15px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .action-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .action-button:hover {
+            color: #111;
+        }
+
+        .action-button i {
+            font-size: 1.1rem;
+        }
+
+        .more-options {
+            position: relative;
+            cursor: pointer;
+            padding: 5px;
+            color: #666;
+            transition: color 0.2s ease;
+        }
+
+        .more-options:hover {
+            color: #111;
+        }
+
+        .theme-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: #666;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 8px 0;
+            min-width: 150px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .dropdown-item {
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f5f5f5;
+        }
+
+        .dropdown-item i {
+            font-size: 1rem;
+            width: 20px;
+        }
+
+        .article-actions {
+            position: relative;
+        }
+
+        /* Edit Dialog Styles */
+        .edit-dialog {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .edit-dialog.show,
+        .dialog-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .dialog-close {
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .edit-form input,
+        .edit-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .edit-form textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            z-index: 1000;
+            transition: bottom 0.3s ease-in-out;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+
+        .bottom-sheet.show {
+            bottom: 0;
+        }
+
+        .sheet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+            z-index: 999;
+        }
+
+        .sheet-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sheet-header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            margin: 0 auto 15px;
+        }
+
+        .sheet-title {
+            font-size: 1.1rem;
+            margin: 0;
+            color: #111;
+        }
+
+        .sheet-close {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 8px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .sheet-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sheet-option {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .sheet-option:hover {
+            background: #f5f5f5;
+        }
+
+        .sheet-option i {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sheet-option.danger {
+            color: #dc3545;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Animated Background */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .animated-shape {
+            position: absolute;
+            background: linear-gradient(45deg, #f3f3f3, #ffffff);
+            border-radius: 50%;
+            animation: float 20s infinite;
+            opacity: 0.6;
+        }
+
+        .shape1 {
+            width: 400px;
+            height: 400px;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .shape2 {
+            width: 300px;
+            height: 300px;
+            top: 60%;
+            right: -50px;
+            animation-delay: -5s;
+        }
+
+        .shape3 {
+            width: 200px;
+            height: 200px;
+            bottom: -50px;
+            left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            25% {
+                transform: translate(50px, 50px) rotate(90deg);
+            }
+            50% {
+                transform: translate(0, 100px) rotate(180deg);
+            }
+            75% {
+                transform: translate(-50px, 50px) rotate(270deg);
+            }
+        }
+
+        /* Enhanced Article Cards */
+        .article-card {
+            position: relative;
+            overflow: visible;
+            transition: all 0.3s ease;
+        }
+
+        .article-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #f3f3f3, #ffffff);
+            border-radius: 20px;
+            z-index: -1;
+            transition: transform 0.3s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .article-card:hover::before {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        /* Shimmer Loading Effect */
+        .shimmer {
+            background: linear-gradient(90deg, 
+                #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        /* Category Pills Animation */
+        .category-tag {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-tag::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.2),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .category-tag:hover::after {
+            left: 100%;
+        }
+
+        /* Scroll Progress Bar */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #f0f0f0;
+            z-index: 1000;
+        }
+
+        .scroll-progress-bar {
+            height: 100%;
+            background: #111;
+            width: 0%;
+            transition: width 0.1s ease;
+        }
+
+        /* Enhanced Search Bar */
+        .search-container {
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 20px 60px;
+            border: none;
+            border-radius: 30px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        /* Article Grid Animation */
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* No Results Animation */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease 0.3s forwards;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        /* Loading Skeleton */
+        .skeleton-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 400px;
+        }
+
+        .skeleton-image {
+            height: 200px;
+            background: #f0f0f0;
+        }
+
+        .skeleton-content {
+            padding: 20px;
+        }
+
+        .skeleton-title {
+            height: 24px;
+            width: 80%;
+            background: #f0f0f0;
+            margin-bottom: 15px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            background: #f0f0f0;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-text:last-child {
+            width: 60%;
+        }
+
+        .article-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .article-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .article-actions {
+            position: relative;
+            z-index: 1;
+        }
+
+        .action-button {
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .action-button:hover {
+            color: #111;
+        }
+
+        .more-options {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s ease;
+        }
+
+        .more-options:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div style="display: flex; align-items: center; margin: 32px;">
+            <img onclick="location.href='index.html';" src="logo.png" alt="Logo" 
+                style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
+            <h4 onclick="location.href='index.html';" 
+                style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="search-section">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Search articles..."
+                    id="searchInput"
+                >
+            </div>
+            <div class="categories" id="categories">
+                <div class="category-tag active" data-category="all">All</div>
+                <div class="category-tag" data-category="technology">Technology</div>
+                <div class="category-tag" data-category="lifestyle">Lifestyle</div>
+                <div class="category-tag" data-category="travel">Travel</div>
+                <div class="category-tag" data-category="food">Food</div>
+            </div>
+        </div>
+
+        <div class="articles-grid" id="articlesGrid">
+            <!-- Articles will be loaded here -->
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+        </div>
+
+        <div id="noResults" class="no-results" style="display: none;">
+            <h3>No articles found</h3>
+            <p>Try adjusting your search or filters</p>
+        </div>
+
+        <button id="load-more" style="display: none;">Load More</button>
+    </div>
+
+    <div class="dialog-overlay" id="dialogOverlay"></div>
+    <div class="edit-dialog" id="editDialog">
+        <div class="dialog-header">
+            <h3>Edit Post</h3>
+            <i class="fas fa-times dialog-close" onclick="closeEditDialog()"></i>
+        </div>
+        <form class="edit-form" id="editForm">
+            <input type="text" id="editTitle" placeholder="Title" required>
+            <input type="text" id="editCategory" placeholder="Category" required>
+            <textarea id="editContent" placeholder="Content" required></textarea>
+            <button type="submit" class="login-button">Save Changes</button>
+        </form>
+    </div>
+
+    <div class="sheet-overlay" id="sheetOverlay"></div>
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="sheet-header">
+            <div class="sheet-handle"></div>
+            <h3 class="sheet-title">Post Options</h3>
+            <div class="sheet-close" onclick="closeBottomSheet()">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+        <div class="sheet-options" id="sheetOptions">
+            <!-- Options will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <div class="background-animation">
+        <div class="animated-shape shape1"></div>
+        <div class="animated-shape shape2"></div>
+        <div class="animated-shape shape3"></div>
+    </div>
+
+    <div class="scroll-progress">
+        <div class="scroll-progress-bar" id="scrollProgress"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, limit, startAfter, getDocs, where, deleteDoc, doc, updateDoc, setDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
             authDomain: "storm-blogs.firebaseapp.com",
@@ -21,107 +850,492 @@
             appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth();
 
-        // Function to fetch posts
-        document.addEventListener("DOMContentLoaded", function() {
-            getDocs(collection(db, "posts"))
-                .then(snapshot => {
-                    if (snapshot.empty) {
-                        document.getElementById("blog-feed").innerHTML = "<p style='text-align:center;'>No articles available.</p>";
-                        return;
-                    }
+        let lastDoc = null;
+        let currentCategory = 'all';
+        let currentSearch = '';
+        const ARTICLES_PER_PAGE = 9;
 
-                    let feedHtml = "";
-                    const uiClasses = [
-                        "background: #8DE4AF; color: #111;",
-                        "background: #111; color: #fff;",
-                        "background: #D7AFFF; color: #111;",
-                        "background: #FCE77D; color: #111;"
-                    ];
+        // Load initial articles
+        loadArticles(true);
 
-                    snapshot.forEach(doc => {
-                        const post = doc.data();
-                        let timeDiff = Date.now() - post.timestamp;
-                        let timeAgo = formatTimeAgo(timeDiff);
-                        let truncatedContent = post.content.length > 250 ? post.content.substring(0, 247) + '...' : post.content
-                        const randomClass = uiClasses[Math.floor(Math.random() * uiClasses.length)];
-
-                        feedHtml += `
-<div style="display: flex; gap: 16px; margin:0px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;">    
-<div onclick="location.href='read.html?id=${doc.id}'" style="flex: 1; width: 250px; max-width: 250px; padding: 20px; border-radius: 12px; ${randomClass}; cursor: pointer;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center;">
-                <img src="profile.jpg" alt="Profile" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; margin-right: 8px;">
-                <span style="font-weight: 600;">Nikit Hamal</span>
-            </div>
-            <i class="fas fa-share-alt" onclick="event.stopPropagation(); sharePost('${doc.id}')" style="cursor: pointer;"></i>
-        </div>
-        <p style="font-weight:600; font-size:14px; margin: 0 0 8px 0;">${post.category}</p>
-        <p style="font-weight:600; font-size:18px; margin:8px 0;">${post.title}</p>
-        <p style="font-size: 14px; margin: 8px 0;">${truncatedContent}</p>
-        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: #666; margin-top: 10px;">
-            <span><i class="far fa-clock" style="margin-right: 5px;"></i> ${formatTimeAgo(post.timestamp)}</span>
-            <span><i class="far fa-thumbs-up" style="margin-right: 5px;"></i> ${post.likes || 0}</span>
-            <span><i class="far fa-comment" style="margin-right: 5px;"></i> ${post.comments || 0}</span>
-            <i class="fas fa-ellipsis-h" style="cursor: pointer;"></i>
-        </div>
-    </div>
-</div>
-`;
-
-                    });
-                    document.getElementById("blog-feed").innerHTML = feedHtml;
-                })
-                .catch(error => console.error("Error loading posts:", error));
+        // Search input handler
+        const searchInput = document.getElementById('searchInput');
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearch = e.target.value.toLowerCase();
+                lastDoc = null;
+                loadArticles(true);
+            }, 500);
         });
 
-        // Function to format time difference
-        function formatTimeAgo(milliseconds) {
-            const seconds = Math.floor(milliseconds / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-            const weeks = Math.floor(days / 7);
-            const months = Math.floor(days / 30);
-            const years = Math.floor(days / 365);
-            
-            if (years > 0) return `${years} year${years > 1 ? 's' : ''}`;
-            if (months > 0) return `${months} month${months > 1 ? 's' : ''}`;
-            if (weeks > 0) return `${weeks} week${weeks > 1 ? 's' : ''}`;
-            if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
-            if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
-            if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
-            return `${seconds} second${seconds > 1 ? 's' : ''}`;
+        // Category filter handler
+        document.getElementById('categories').addEventListener('click', (e) => {
+            if (e.target.classList.contains('category-tag')) {
+                document.querySelectorAll('.category-tag').forEach(tag => {
+                    tag.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                lastDoc = null;
+                loadArticles(true);
+            }
+        });
+
+        // Load more handler
+        document.getElementById('load-more').addEventListener('click', () => {
+            loadArticles();
+        });
+
+        async function loadArticles(reset = false) {
+            const loadingDiv = document.getElementById('loading');
+            const noResultsDiv = document.getElementById('noResults');
+            const articlesGrid = document.getElementById('articlesGrid');
+            const loadMoreBtn = document.getElementById('load-more');
+
+            try {
+                if (reset) {
+                    // Show shimmer loading only on initial load or reset
+                    showLoadingSkeleton();
+                }
+
+                let q = query(
+                    collection(db, "posts"),
+                    orderBy("timestamp", "desc"),
+                    limit(ARTICLES_PER_PAGE)
+                );
+
+                if (currentCategory !== 'all') {
+                    q = query(q, where("category", "==", currentCategory));
+                }
+
+                if (lastDoc) {
+                    q = query(q, startAfter(lastDoc));
+                }
+
+                const snapshot = await getDocs(q);
+                
+                if (reset) {
+                    // Clear shimmer loading and grid only on reset
+                    articlesGrid.innerHTML = '';
+                }
+
+                if (snapshot.empty && reset) {
+                    noResultsDiv.style.display = 'block';
+                    loadMoreBtn.style.display = 'none';
+                    return;
+                }
+
+                noResultsDiv.style.display = 'none';
+                
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (!currentSearch || 
+                        data.title.toLowerCase().includes(currentSearch) || 
+                        data.content.toLowerCase().includes(currentSearch)) {
+                        
+                        const timestamp = data.timestamp?.toDate?.() || new Date();
+                        const article = document.createElement('div');
+                        article.className = 'article-card';
+                        
+                        // Ensure likes is always an array and get count
+                        const likes = Array.isArray(data.likes) ? data.likes : [];
+                        const likeCount = likes.length;
+                        const isLiked = auth.currentUser && likes.includes(auth.currentUser.uid);
+                        
+                        // Only include image HTML if image exists and is not empty
+                        const imageHtml = data.image && data.image.trim() ? 
+                            `<img src="${data.image}" alt="${data.title}" class="article-image">` : '';
+                        
+                        article.innerHTML = `
+                            ${imageHtml}
+                            <div class="article-content">
+                                <div class="article-category">${data.category || 'Uncategorized'}</div>
+                                <h3 class="article-title">${data.title}</h3>
+                                <div class="theme-tags">
+                                    ${(data.themes || []).map(theme => 
+                                        `<span class="theme-tag">${theme}</span>`
+                                    ).join('')}
+                                </div>
+                                <p class="article-preview">${data.content.substring(0, 150)}...</p>
+                                <div class="article-meta">
+                                    <div class="article-author">
+                                        <span>${data.authorName || 'Anonymous'}</span>
+                                    </div>
+                                    <span>${timestamp.toLocaleDateString()}</span>
+                                </div>
+                                <div class="article-actions">
+                                    <div class="action-buttons">
+                                        <div class="action-button">
+                                            <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
+                                            <span class="like-count">${likeCount}</span>
+                                        </div>
+                                        <div class="action-button">
+                                            <i class="far fa-comment"></i>
+                                            <span>${data.comments?.length || 0}</span>
+                                        </div>
+                                    </div>
+                                    <div class="more-options">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Add click handler for the entire article
+                        article.addEventListener('click', (e) => {
+                            // Prevent navigation if clicking on action buttons or more options
+                            if (!e.target.closest('.article-actions')) {
+                                window.location.href = `read.html?id=${doc.id}`;
+                            }
+                        });
+
+                        // Add click handler for more options
+                        const moreOptions = article.querySelector('.more-options');
+                        moreOptions.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent article click
+                            showBottomSheet(doc.id, data.authorId);
+                        });
+
+                        // Update like button handler
+                        const likeButton = article.querySelector('.action-button:first-child');
+                        likeButton.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            
+                            if (!auth.currentUser) {
+                                alert('Please login to like posts');
+                                return;
+                            }
+
+                            const userId = auth.currentUser.uid;
+                            const docRef = doc(db, "posts", doc.id);
+                            const currentLikes = Array.isArray(data.likes) ? data.likes : [];
+                            const isCurrentlyLiked = currentLikes.includes(userId);
+
+                            try {
+                                // Prepare new likes array
+                                const newLikes = isCurrentlyLiked 
+                                    ? currentLikes.filter(id => id !== userId)
+                                    : [...currentLikes, userId];
+
+                                // Update in Firebase
+                                await updateDoc(docRef, {
+                                    likes: newLikes
+                                });
+
+                                // Update UI
+                                const likeIcon = likeButton.querySelector('i');
+                                const likeCountSpan = likeButton.querySelector('.like-count');
+                                
+                                likeIcon.className = isCurrentlyLiked ? 'far fa-heart' : 'fas fa-heart';
+                                likeCountSpan.textContent = newLikes.length;
+
+                                // Update local data reference
+                                data.likes = newLikes;
+
+                            } catch (error) {
+                                console.error("Error updating like:", error);
+                                // Optionally show error message to user
+                                alert('Failed to update like. Please try again.');
+                            }
+                        });
+
+                        // Add click handlers for comment buttons
+                        const commentButton = article.querySelector('.action-button:last-child');
+                        commentButton.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent article click
+                            window.location.href = `read.html?id=${doc.id}#comments`;
+                        });
+
+                        articlesGrid.appendChild(article);
+                        observer.observe(article);
+                    }
+                });
+
+                lastDoc = snapshot.docs[snapshot.docs.length - 1];
+                loadMoreBtn.style.display = snapshot.docs.length < ARTICLES_PER_PAGE ? 'none' : 'block';
+
+            } catch (error) {
+                console.error("Error loading articles:", error);
+            }
         }
 
+        // Filter toggle function
+        window.toggleFilters = function() {
+            const categories = document.getElementById('categories');
+            categories.style.display = categories.style.display === 'none' ? 'flex' : 'none';
+        }
 
+        // Add these functions to handle the dropdown menu and edit dialog
+        window.sharePost = async function(docId) {
+            try {
+                await navigator.share({
+                    title: 'Share Post',
+                    url: `${window.location.origin}/read.html?id=${docId}`
+                });
+            } catch (error) {
+                console.error('Error sharing:', error);
+            }
+        };
+
+        window.reportPost = function(docId) {
+            // Implement report functionality
+            alert('Report submitted');
+        };
+
+        window.editPost = async function(docId) {
+            const postDoc = await getDoc(doc(db, "posts", docId));
+            const postData = postDoc.data();
+            
+            document.getElementById('editTitle').value = postData.title;
+            document.getElementById('editCategory').value = postData.category;
+            document.getElementById('editContent').value = postData.content;
+            
+            document.getElementById('editForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const updates = {
+                    title: document.getElementById('editTitle').value,
+                    category: document.getElementById('editCategory').value,
+                    content: document.getElementById('editContent').value,
+                    lastEdited: new Date()
+                };
+                
+                await updateDoc(doc(db, "posts", docId), updates);
+                closeEditDialog();
+                loadArticles(true); // Reload articles
+            };
+            
+            openEditDialog();
+        };
+
+        window.archivePost = async function(docId) {
+            if (confirm('Are you sure you want to archive this post?')) {
+                const postDoc = await getDoc(doc(db, "posts", docId));
+                const postData = postDoc.data();
+                
+                // Move to archives collection
+                await setDoc(doc(db, "archives", docId), {
+                    ...postData,
+                    archivedAt: new Date()
+                });
+                
+                // Delete from posts collection
+                await deleteDoc(doc(db, "posts", docId));
+                
+                loadArticles(true); // Reload articles
+            }
+        };
+
+        window.deletePost = async function(docId) {
+            if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+                await deleteDoc(doc(db, "posts", docId));
+                loadArticles(true); // Reload articles
+            }
+        };
+
+        window.openEditDialog = function() {
+            document.getElementById('dialogOverlay').classList.add('show');
+            document.getElementById('editDialog').classList.add('show');
+        };
+
+        window.closeEditDialog = function() {
+            document.getElementById('dialogOverlay').classList.remove('show');
+            document.getElementById('editDialog').classList.remove('show');
+        };
+
+        window.showBottomSheet = function(docId, authorId) {
+            const currentUser = auth.currentUser;
+            const isAuthor = currentUser && currentUser.uid === authorId;
+            
+            const sheetOptions = document.getElementById('sheetOptions');
+            sheetOptions.innerHTML = `
+                <div class="sheet-option" onclick="sharePost('${docId}')">
+                    <i class="fas fa-share"></i>
+                    <span>Share Post</span>
+                </div>
+                <div class="sheet-option" onclick="reportPost('${docId}')">
+                    <i class="fas fa-flag"></i>
+                    <span>Report Post</span>
+                </div>
+                ${isAuthor ? `
+                    <div class="sheet-option" onclick="editPost('${docId}')">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit Post</span>
+                    </div>
+                    <div class="sheet-option" onclick="archivePost('${docId}')">
+                        <i class="fas fa-archive"></i>
+                        <span>Archive Post</span>
+                    </div>
+                    <div class="sheet-option danger" onclick="deletePost('${docId}')">
+                        <i class="fas fa-trash"></i>
+                        <span>Delete Post</span>
+                    </div>
+                ` : ''}
+            `;
+
+            document.getElementById('sheetOverlay').classList.add('show');
+            document.getElementById('bottomSheet').classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        };
+
+        window.closeBottomSheet = function() {
+            document.getElementById('sheetOverlay').classList.remove('show');
+            document.getElementById('bottomSheet').classList.remove('show');
+            document.body.style.overflow = ''; // Restore scrolling
+        };
+
+        // Add click handler for overlay
+        document.getElementById('sheetOverlay').addEventListener('click', closeBottomSheet);
+
+        // Add touch events for swipe down to close
+        const bottomSheet = document.getElementById('bottomSheet');
+        let startY;
+
+        bottomSheet.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        });
+
+        bottomSheet.addEventListener('touchmove', (e) => {
+            if (!startY) return;
+
+            const currentY = e.touches[0].clientY;
+            const diff = currentY - startY;
+
+            if (diff > 0) { // Only allow downward swipe
+                bottomSheet.style.transform = `translateY(${diff}px)`;
+            }
+        });
+
+        bottomSheet.addEventListener('touchend', (e) => {
+            startY = null;
+            const currentTransform = parseInt(bottomSheet.style.transform?.slice(10) || '0');
+            
+            if (currentTransform > 100) { // If swiped down more than 100px
+                closeBottomSheet();
+            } else {
+                bottomSheet.style.transform = ''; // Reset position
+            }
+        });
+
+        // Scroll Progress Bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            document.getElementById('scrollProgress').style.width = scrolled + '%';
+        });
+
+        // Loading Skeleton
+        function showLoadingSkeleton() {
+            const grid = document.querySelector('.articles-grid');
+            grid.innerHTML = '';
+            
+            for(let i = 0; i < 6; i++) {
+                grid.innerHTML += `
+                    <div class="skeleton-card shimmer">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-title"></div>
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Intersection Observer for lazy loading
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+
+        // Initial load
+        loadArticles(true); // Pass true for initial load to show loading state
+
+        // Utility function to initialize likes for existing posts
+        async function initializePostLikes() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "posts"));
+                querySnapshot.forEach(async (doc) => {
+                    if (!doc.data().likes) {
+                        await updateDoc(doc.ref, { likes: [] });
+                    }
+                });
+            } catch (error) {
+                console.error("Error initializing likes:", error);
+            }
+        }
+
+        // Call this once when the page loads
+        initializePostLikes();
+
+        // Update the createPost function if you have one
+        async function createPost(postData) {
+            try {
+                await addDoc(collection(db, "posts"), {
+                    ...postData,
+                    likes: [], // Initialize likes array
+                    timestamp: new Date()
+                });
+            } catch (error) {
+                console.error("Error creating post:", error);
+                throw error;
+            }
+        }
+
+        function createArticleCard(article) {
+            const card = document.createElement('div');
+            card.className = 'article-card';
+            card.onclick = () => window.location.href = `read.html?id=${article.id}`;
+
+            // Create excerpt from content (strip HTML and limit length)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = article.content;
+            const textContent = tempDiv.textContent || tempDiv.innerText;
+            const excerpt = textContent.substring(0, 120) + '...';
+
+            card.innerHTML = `
+                <div class="card-content">
+                    <div class="card-category">${article.category || 'Uncategorized'}</div>
+                    <h2 class="card-title">${article.title}</h2>
+                    <div class="card-tags">
+                        ${(article.themes || []).slice(0, 2).map(theme => 
+                            `<span class="card-tag">${theme}</span>`
+                        ).join('')}
+                    </div>
+                    <p class="card-excerpt">${excerpt}</p>
+                    <div class="card-meta">
+                        <a href="#" class="card-author">${article.authorName || 'Anonymous'}</a>
+                        <div class="card-actions">
+                            <span class="card-action">
+                                <i class="far fa-heart"></i>
+                                ${article.likes ? article.likes.length : 0}
+                            </span>
+                            <span class="card-action">
+                                <i class="far fa-comment"></i>
+                                ${article.comments ? article.comments.length : 0}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
     </script>
-
-</head>
-<body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333; scroll-behavior: smooth;">
-<header>
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-        <div style="display: flex; align-items: center; margin:32px; margin-top:36px; margin-bottom:6px;">
-            <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
-            <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
-        </div>
-    </div>
-</header>
-<!-- Top Navigation Bar -->
-<nav style="padding: 8px 0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;">
-
-    <!-- Links -->
-    <div style="display: flex; gap: 16px; margin-right: 16px; margin-left: 20px;">
-        
-<a href="index.html" style="text-decoration: none; font-size: 16px; font-weight:500; padding: 8px 16px; transition: background-color 0.3s ease; color: black; position: relative;" id="home-tab">Home</a>
-        
-<a href="articles.html" style="text-decoration: none; border-bottom:2px solid black; font-size: 16px; font-weight:500; padding: 8px 16px; transition: background-color 0.3s ease; color: black;" id="articles-tab">Articles</a>
-</nav>
-
-<div id="blog-feed" style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start; padding: 16px; margin: 0 auto; max-width: 100%;"></div>
-
+    <script src="https://unpkg.com/masonry-layout@4/dist/masonry.pkgd.min.js"></script>
 </body>
 </html>

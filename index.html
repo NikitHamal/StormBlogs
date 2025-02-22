@@ -14,28 +14,50 @@
 
 <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
 
+    <style>
+        :root {
+            --bg-color: #FDF7F2;
+            --text-color: #333;
+        }
+        
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+    </style>
 </head>
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333; scroll-behavior: smooth;">
     <header>
         <div style="display: flex; align-items: center; justify-content: space-between; margin: 32px; margin-bottom:0px;">
             <div style="display: flex; align-items: center;">
                 <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
-
                 <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
             </div>
-            <div style="display: flex; align-items: center;">
-
-                <button id="start-reading-btn" onclick="location.href='articles.html';" style="padding: 8px 16px; background-color: #111111; color: white; border: none; border-radius: 32px; cursor: pointer; font-family: 'Poppins', serif; font-size: 13px; font-weight:500; margin-right:16px; transition: background-color 0.3s ease;">
-
-                    Start Reading
-
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <button id="theme-toggle" style="padding: 8px; background: none; border: none; cursor: pointer;">
+                    <i class="fas fa-moon"></i>
                 </button>
-                <img id="login" src="menu.png" alt="Menu" style="height:26px; width:26px; cursor: pointer;">
+                <div id="auth-buttons">
+                    <button id="login-btn" onclick="location.href='login.html';" 
+                        style="padding: 8px 16px; background-color: #111111; color: white; border: none; border-radius: 32px; cursor: pointer; font-family: 'Poppins', serif; font-size: 13px; font-weight:500;">
+                        Login
+                    </button>
+                </div>
+                <div id="user-info" style="display: none; align-items: center; gap: 8px;">
+                    <img id="user-avatar" src="" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    <span id="user-name" style="font-weight: 500;"></span>
+                    <button id="logout-btn" style="padding: 8px 16px; background-color: #ff4444; color: white; border: none; border-radius: 32px; cursor: pointer; font-size: 13px;">
+                        Logout
+                    </button>
+                </div>
             </div>
         </div>
-
-
-
     </header>
 
 <!-- Top Navigation Bar -->
@@ -208,6 +230,51 @@
         return `${seconds} second${seconds > 1 ? 's' : ''}`;
     }
 
+    // Handle auth state changes
+    onAuthStateChanged(auth, (user) => {
+        const authButtons = document.getElementById('auth-buttons');
+        const userInfo = document.getElementById('user-info');
+        const writeNav = document.getElementById('write-nav');
+        const adminButton = document.getElementById('admin-button');
+        
+        if (user) {
+            // User is signed in
+            authButtons.style.display = 'none';
+            userInfo.style.display = 'flex';
+            writeNav.style.display = 'block';
+            
+            // Update user info
+            document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
+            document.getElementById('user-avatar').src = user.photoURL || 'profile.jpg';
+            
+            // Check for admin email explicitly
+            if (user.email === 'iamnikithamal@gmail.com' || user.email === 'nikithamal010@gmail.com') {
+                console.log('Admin user detected:', user.email);
+                adminButton.style.display = 'block';
+            } else {
+                console.log('Regular user detected:', user.email);
+                adminButton.style.display = 'none';
+            }
+            
+            localStorage.setItem('user', JSON.stringify(user));
+        } else {
+            // User is signed out
+            authButtons.style.display = 'block';
+            userInfo.style.display = 'none';
+            writeNav.style.display = 'none';
+            adminButton.style.display = 'none';
+            localStorage.removeItem('user');
+        }
+    });
+    
+    // Handle logout
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+        signOut(auth).then(() => {
+            window.location.reload();
+        }).catch((error) => {
+            console.error('Error signing out:', error);
+        });
+    });
 </script>
 
 </body>

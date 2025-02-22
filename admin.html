@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        .dashboard-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #111;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+        
+        .delete-btn {
+            background: #ff4444;
+            color: white;
+        }
+        
+        .feature-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .restrict-btn {
+            background: #ff9800;
+            color: white;
+        }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, deleteDoc, updateDoc, query, where } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged, deleteUser } from 'https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+            authDomain: "storm-blogs.firebaseapp.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
+
+        // Add this function to update the dashboard stats
+        function updateDashboardStats(stats) {
+            document.getElementById('total-users').textContent = stats.totalUsers;
+            document.getElementById('total-posts').textContent = stats.totalPosts;
+            document.getElementById('total-likes').textContent = stats.totalLikes;
+            document.getElementById('total-comments').textContent = stats.totalComments;
+        }
+
+        async function loadDashboard() {
+            try {
+                console.log("Loading dashboard...");
+                
+                // Load statistics
+                const stats = await getStats();
+                console.log("Stats loaded:", stats);
+                updateDashboardStats(stats);
+
+                // Load posts
+                const posts = await getPosts();
+                console.log("Posts loaded:", posts);
+                updatePostsTable(posts);
+
+                // Load users
+                const users = await getUsers();
+                console.log("Users loaded:", users);
+                updateUsersTable(users);
+
+            } catch (error) {
+                console.error("Error loading dashboard:", error);
+                console.error("Error details:", error.message);
+                showNotification("Error loading dashboard data: " + error.message, true);
+            }
+        }
+
+        // Modified getStats function
+        async function getStats() {
+            try {
+                const usersSnapshot = await getDocs(collection(db, "users"));
+                const postsSnapshot = await getDocs(collection(db, "posts"));
+                
+                let totalLikes = 0;
+                let totalComments = 0;
+
+                postsSnapshot.docs.forEach(doc => {
+                    const data = doc.data();
+                    totalLikes += data.likes || 0;
+                    totalComments += data.comments?.length || 0;
+                });
+
+                const stats = {
+                    totalUsers: usersSnapshot.size || 0,
+                    totalPosts: postsSnapshot.size || 0,
+                    totalLikes: totalLikes,
+                    totalComments: totalComments
+                };
+
+                console.log("Calculated stats:", stats);
+                return stats;
+
+            } catch (error) {
+                console.error("Error getting stats:", error);
+                return {
+                    totalUsers: 0,
+                    totalPosts: 0,
+                    totalLikes: 0,
+                    totalComments: 0
+                };
+            }
+        }
+
+        // Modified getPosts function
+        async function getPosts() {
+            try {
+                const postsSnapshot = await getDocs(collection(db, "posts"));
+                return postsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            } catch (error) {
+                console.error("Error getting posts:", error);
+                return [];
+            }
+        }
+
+        // Modified getUsers function
+        async function getUsers() {
+            try {
+                const usersRef = collection(db, "users");
+                const usersSnapshot = await getDocs(usersRef);
+                return usersSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            } catch (error) {
+                console.error("Error getting users:", error);
+                return [];
+            }
+        }
+
+        // Update posts table
+        function updatePostsTable(posts) {
+            const tbody = document.getElementById('posts-body');
+            tbody.innerHTML = posts.map(post => `
+                <tr>
+                    <td>${post.title}</td>
+                    <td>${post.authorName || 'Unknown'}</td>
+                    <td>${new Date(post.timestamp).toLocaleDateString()}</td>
+                    <td>${post.likes || 0}</td>
+                    <td>${post.comments?.length || 0}</td>
+                    <td>
+                        <button onclick="deletePost('${post.id}')" class="action-btn delete-btn">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button onclick="toggleFeature('${post.id}', ${post.featured || false})" 
+                                class="action-btn feature-btn">
+                            <i class="fas fa-star${post.featured ? ' fas' : ''}"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update users table
+        function updateUsersTable(users) {
+            const tbody = document.getElementById('users-body');
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.displayName || 'Unknown'}</td>
+                    <td>${user.email}</td>
+                    <td>${new Date(user.createdAt || Date.now()).toLocaleDateString()}</td>
+                    <td>${user.posts?.length || 0}</td>
+                    <td>${user.restricted ? 'Restricted' : 'Active'}</td>
+                    <td>
+                        <button onclick="restrictUser('${user.id}', ${user.restricted || false})" 
+                                class="action-btn restrict-btn">
+                            <i class="fas fa-ban"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Make functions available globally for onclick events
+        window.deletePost = async function(postId) {
+            if (confirm('Are you sure you want to delete this post?')) {
+                try {
+                    await deleteDoc(doc(db, "posts", postId));
+                    showNotification("Post deleted successfully");
+                    loadDashboard();
+                } catch (error) {
+                    console.error("Error deleting post:", error);
+                    showNotification("Error deleting post", true);
+                }
+            }
+        };
+
+        window.toggleFeature = async function(postId, featured) {
+            try {
+                await updateDoc(doc(db, "posts", postId), {
+                    featured: !featured
+                });
+                showNotification(`Post ${featured ? 'unfeatured' : 'featured'} successfully`);
+                loadDashboard();
+            } catch (error) {
+                console.error("Error updating post:", error);
+                showNotification("Error updating post", true);
+            }
+        };
+
+        window.restrictUser = async function(userId, restricted) {
+            try {
+                await updateDoc(doc(db, "users", userId), {
+                    restricted: !restricted
+                });
+                showNotification(`User ${restricted ? 'unrestricted' : 'restricted'} successfully`);
+                loadDashboard();
+            } catch (error) {
+                console.error("Error updating user:", error);
+                showNotification("Error updating user", true);
+            }
+        };
+
+        // Initialize dashboard when admin is authenticated
+        onAuthStateChanged(auth, async (user) => {
+            console.log("Auth state changed:", user?.email);
+            if (!user || !['iamnikithamal@gmail.com', 'nikithamal010@gmail.com'].includes(user.email)) {
+                console.log("Unauthorized access, redirecting...");
+                window.location.href = 'index.html';
+                return;
+            }
+            console.log("Admin authenticated, loading dashboard...");
+            await loadDashboard();
+        });
+
+        // Keep existing notification function
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById("notification");
+            notification.textContent = message;
+            notification.style.backgroundColor = isError ? "#ff4444" : "#4CAF50";
+            notification.style.display = "block";
+            setTimeout(() => {
+                notification.style.display = "none";
+            }, 3000);
+        }
+    </script>
+</head>
+<body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333;">
+    <header>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin: 32px;">
+            <div style="display: flex; align-items: center;">
+                <img onclick="location.href='index.html';" src="logo.png" alt="Logo" style="margin-right: 4px; height:26px; width: 26px; cursor:pointer;">
+                <h4 onclick="location.href='index.html';" style="color: #111111; margin: 0; cursor:pointer;">/Storm Blogs</h4>
+            </div>
+            <h2>Admin Panel</h2>
+        </div>
+    </header>
+
+    <div id="notification" style="display: none; position: fixed; top: 20px; right: 20px; padding: 16px; border-radius: 8px; color: white; z-index: 1000;"></div>
+
+    <main style="max-width: 1200px; margin: auto; padding: 32px;">
+        <!-- Dashboard Stats -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 32px;">
+            <div class="dashboard-card">
+                <h3>Total Users</h3>
+                <div class="stat-number" id="total-users">0</div>
+            </div>
+            <div class="dashboard-card">
+                <h3>Total Posts</h3>
+                <div class="stat-number" id="total-posts">0</div>
+            </div>
+            <div class="dashboard-card">
+                <h3>Total Likes</h3>
+                <div class="stat-number" id="total-likes">0</div>
+            </div>
+            <div class="dashboard-card">
+                <h3>Total Comments</h3>
+                <div class="stat-number" id="total-comments">0</div>
+            </div>
+        </div>
+
+        <!-- Posts Management -->
+        <div class="dashboard-card">
+            <h3>Posts Management</h3>
+            <div class="table-container">
+                <table id="posts-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Date</th>
+                            <th>Likes</th>
+                            <th>Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="posts-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="dashboard-card">
+            <h3>User Management</h3>
+            <div class="table-container">
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Join Date</th>
+                            <th>Posts</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="dashboard-card">
+            <h3>Analytics</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div>
+                    <h4>User Growth</h4>
+                    <canvas id="user-growth-chart"></canvas>
+                </div>
+                <div>
+                    <h4>Post Activity</h4>
+                    <canvas id="post-activity-chart"></canvas>
+                </div>
+                <div>
+                    <h4>Engagement</h4>
+                    <canvas id="engagement-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html> 
