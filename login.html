@@ -241,12 +241,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
             authDomain: "storm-blogs.firebaseapp.com",
+            databaseURL: "https://storm-blogs-default-rtdb.firebaseio.com",
             projectId: "storm-blogs",
             storageBucket: "storm-blogs.firebasestorage.app",
             messagingSenderId: "158567556221",
@@ -256,7 +257,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
-        const db = getFirestore();
+        const db = getDatabase();
 
         // Handle form submission
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -267,63 +268,40 @@
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
 
+                // Sign in user
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                await handleAuthSuccess(userCredential.user);
+
+                // Update last login time
+                await update(ref(db, `users/${userCredential.user.uid}`), {
+                    lastLogin: Date.now()
+                });
+
+                // Redirect to home page
+                window.location.href = 'index.html';
 
             } catch (error) {
-                console.error('Error signing in:', error);
-                showError(getErrorMessage(error));
+                console.error('Error during login:', error);
                 hideLoading();
+                showError(error.message);
             }
         });
 
-        async function handleAuthSuccess(user) {
-            try {
-                const docSnapshot = await getDoc(doc(db, "users", user.uid));
-                hideLoading();
-                window.location.href = docSnapshot.exists() ? 'articles.html' : 'profile.html';
-            } catch (error) {
-                hideLoading();
-                console.error("Error checking profile:", error);
-                showToast('Error checking profile status', 'error');
-            }
-        }
-
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-        }
-
-        function getErrorMessage(error) {
-            switch (error.code) {
-                case 'auth/invalid-email':
-                    return 'Invalid email address';
-                case 'auth/user-disabled':
-                    return 'This account has been disabled';
-                case 'auth/user-not-found':
-                    return 'No account found with this email';
-                case 'auth/wrong-password':
-                    return 'Incorrect password';
-                default:
-                    return 'An error occurred. Please try again';
-            }
-        }
-
+        // Loading overlay functions
         function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('active');
+            document.getElementById('loadingOverlay').style.display = 'flex';
         }
 
         function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('active');
+            document.getElementById('loadingOverlay').style.display = 'none';
         }
 
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type}`;
-            toast.classList.add('active');
-            setTimeout(() => toast.classList.remove('active'), 3000);
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
         }
     </script>
 </body>

@@ -851,12 +851,13 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, limit, startAfter, getDocs, where, deleteDoc, doc, updateDoc, setDoc, arrayRemove, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getDatabase, ref, get, query, orderByChild, limitToLast, startAfter, remove, update, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
             authDomain: "storm-blogs.firebaseapp.com",
+            databaseURL: "https://storm-blogs-default-rtdb.firebaseio.com",
             projectId: "storm-blogs",
             storageBucket: "storm-blogs.firebasestorage.app",
             messagingSenderId: "158567556221",
@@ -864,10 +865,10 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const db = getDatabase(app);
         const auth = getAuth();
 
-        let lastDoc = null;
+        let lastKey = null;
         let currentCategory = 'all';
         let currentSearch = '';
         const ARTICLES_PER_PAGE = 9;
@@ -882,272 +883,120 @@
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 currentSearch = e.target.value.toLowerCase();
-                lastDoc = null;
+                lastKey = null;
                 loadArticles(true);
             }, 500);
         });
 
         // Category filter handler
-        document.getElementById('categories').addEventListener('click', (e) => {
-            if (e.target.classList.contains('category-tag')) {
-                document.querySelectorAll('.category-tag').forEach(tag => {
-                    tag.classList.remove('active');
-                });
-                e.target.classList.add('active');
-                currentCategory = e.target.dataset.category;
-                lastDoc = null;
-                loadArticles(true);
-            }
-        });
+        window.filterByCategory = function(category) {
+            currentCategory = category;
+            lastKey = null;
+            loadArticles(true);
+            
+            // Update active state of category buttons
+            document.querySelectorAll('.category-tag').forEach(tag => {
+                tag.classList.toggle('active', tag.dataset.category === category);
+            });
+        };
 
         // Load more handler
-        document.getElementById('load-more').addEventListener('click', () => {
-            loadArticles();
-        });
+        window.loadMore = function() {
+            if (lastKey) {
+                loadArticles(false);
+            }
+        };
 
-        async function loadArticles(reset = false) {
-            const loadingDiv = document.getElementById('loading');
-            const noResultsDiv = document.getElementById('noResults');
-            const articlesGrid = document.getElementById('articlesGrid');
-            const loadMoreBtn = document.getElementById('load-more');
-
+        async function loadArticles(reset) {
             try {
+                const articlesContainer = document.getElementById('articlesGrid');
                 if (reset) {
-                    // Show shimmer loading only on initial load or reset
-                    showLoadingSkeleton();
+                    articlesContainer.innerHTML = '';
                 }
 
-                let q = query(
-                    collection(db, "posts"),
-                    orderBy("timestamp", "desc"),
-                    limit(ARTICLES_PER_PAGE)
-                );
+                let articlesRef = ref(db, 'posts');
+                let articlesQuery;
 
                 if (currentCategory !== 'all') {
-                    q = query(q, where("category", "==", currentCategory));
+                    articlesQuery = query(articlesRef, 
+                        orderByChild('category'),
+                        startAfter(lastKey || null),
+                        limitToLast(ARTICLES_PER_PAGE)
+                    );
+                } else {
+                    articlesQuery = query(articlesRef,
+                        orderByChild('timestamp'),
+                        startAfter(lastKey || null),
+                        limitToLast(ARTICLES_PER_PAGE)
+                    );
                 }
 
-                if (lastDoc) {
-                    q = query(q, startAfter(lastDoc));
-                }
+                const snapshot = await get(articlesQuery);
+                const articles = [];
 
-                const snapshot = await getDocs(q);
-                
-                if (reset) {
-                    // Clear shimmer loading and grid only on reset
-                    articlesGrid.innerHTML = '';
-                }
-
-                if (snapshot.empty && reset) {
-                    noResultsDiv.style.display = 'block';
-                    loadMoreBtn.style.display = 'none';
-                    return;
-                }
-
-                noResultsDiv.style.display = 'none';
-                
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (!currentSearch || 
-                        data.title.toLowerCase().includes(currentSearch) || 
-                        data.content.toLowerCase().includes(currentSearch)) {
-                        
-                        const timestamp = data.timestamp?.toDate?.() || new Date();
-                        const article = document.createElement('div');
-                        article.className = 'article-card';
-                        
-                        // Ensure likes is always an array and get count
-                        const likes = Array.isArray(data.likes) ? data.likes : [];
-                        const likeCount = likes.length;
-                        const isLiked = auth.currentUser && likes.includes(auth.currentUser.uid);
-                        
-                        // Only include image HTML if image exists and is not empty
-                        const imageHtml = data.image && data.image.trim() ? 
-                            `<img src="${data.image}" alt="${data.title}" class="article-image">` : '';
-                        
-                        article.innerHTML = `
-                            ${imageHtml}
-                            <div class="article-content">
-                                <div class="article-category">${data.category || 'Uncategorized'}</div>
-                                <h3 class="article-title">${data.title}</h3>
-                                <div class="theme-tags">
-                                    ${(data.themes || []).map(theme => 
-                                        `<span class="theme-tag">${theme}</span>`
-                                    ).join('')}
-                                </div>
-                                <p class="article-preview">${data.content.substring(0, 150)}...</p>
-                                <div class="article-meta">
-                                    <div class="article-author">
-                                        <span>${data.authorName || 'Anonymous'}</span>
-                                    </div>
-                                    <span>${timestamp.toLocaleDateString()}</span>
-                                </div>
-                                <div class="article-actions">
-                                    <div class="action-buttons">
-                                        <div class="action-button">
-                                            <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
-                                            <span class="like-count">${likeCount}</span>
-                                        </div>
-                                        <div class="action-button">
-                                            <i class="far fa-comment"></i>
-                                            <span>${data.comments?.length || 0}</span>
-                                        </div>
-                                    </div>
-                                    <div class="more-options">
-                                        <i class="fas fa-ellipsis-h"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-
-                        // Add click handler for the entire article
-                        article.addEventListener('click', (e) => {
-                            // Prevent navigation if clicking on action buttons or more options
-                            if (!e.target.closest('.article-actions')) {
-                                window.location.href = `read.html?id=${doc.id}`;
-                            }
-                        });
-
-                        // Add click handler for more options
-                        const moreOptions = article.querySelector('.more-options');
-                        moreOptions.addEventListener('click', (e) => {
-                            e.stopPropagation(); // Prevent article click
-                            showBottomSheet(doc.id, data.authorId);
-                        });
-
-                        // Update like button handler
-                        const likeButton = article.querySelector('.action-button:first-child');
-                        likeButton.addEventListener('click', async (e) => {
-                            e.stopPropagation();
-                            
-                            if (!auth.currentUser) {
-                                alert('Please login to like posts');
-                                return;
-                            }
-
-                            const userId = auth.currentUser.uid;
-                            const docRef = doc(db, "posts", doc.id);
-                            const currentLikes = Array.isArray(data.likes) ? data.likes : [];
-                            const isCurrentlyLiked = currentLikes.includes(userId);
-
-                            try {
-                                // Prepare new likes array
-                                const newLikes = isCurrentlyLiked 
-                                    ? currentLikes.filter(id => id !== userId)
-                                    : [...currentLikes, userId];
-
-                                // Update in Firebase
-                                await updateDoc(docRef, {
-                                    likes: newLikes
-                                });
-
-                                // Update UI
-                                const likeIcon = likeButton.querySelector('i');
-                                const likeCountSpan = likeButton.querySelector('.like-count');
-                                
-                                likeIcon.className = isCurrentlyLiked ? 'far fa-heart' : 'fas fa-heart';
-                                likeCountSpan.textContent = newLikes.length;
-
-                                // Update local data reference
-                                data.likes = newLikes;
-
-                            } catch (error) {
-                                console.error("Error updating like:", error);
-                                // Optionally show error message to user
-                                alert('Failed to update like. Please try again.');
-                            }
-                        });
-
-                        // Add click handlers for comment buttons
-                        const commentButton = article.querySelector('.action-button:last-child');
-                        commentButton.addEventListener('click', (e) => {
-                            e.stopPropagation(); // Prevent article click
-                            window.location.href = `read.html?id=${doc.id}#comments`;
-                        });
-
-                        articlesGrid.appendChild(article);
-                        observer.observe(article);
+                snapshot.forEach((childSnapshot) => {
+                    const article = childSnapshot.val();
+                    article.id = childSnapshot.key;
+                    
+                    if (currentSearch && !article.title.toLowerCase().includes(currentSearch)) {
+                        return;
                     }
+                    
+                    if (currentCategory !== 'all' && article.category !== currentCategory) {
+                        return;
+                    }
+                    
+                    articles.push(article);
                 });
 
-                lastDoc = snapshot.docs[snapshot.docs.length - 1];
-                loadMoreBtn.style.display = snapshot.docs.length < ARTICLES_PER_PAGE ? 'none' : 'block';
+                if (articles.length > 0) {
+                    lastKey = articles[0].timestamp;
+                }
+
+                articles.reverse().forEach(article => {
+                    const card = createArticleCard(article);
+                    articlesContainer.appendChild(card);
+                });
+
+                // Show/hide load more button
+                document.getElementById('load-more').style.display = 
+                    articles.length >= ARTICLES_PER_PAGE ? 'block' : 'none';
 
             } catch (error) {
-                console.error("Error loading articles:", error);
+                console.error('Error loading articles:', error);
+                showError('Failed to load articles');
             }
         }
 
-        // Filter toggle function
-        window.toggleFilters = function() {
-            const categories = document.getElementById('categories');
-            categories.style.display = categories.style.display === 'none' ? 'flex' : 'none';
+        function createArticleCard(article) {
+            const card = document.createElement('div');
+            card.className = 'article-card';
+            card.innerHTML = `
+                <div class="article-image">
+                    <img src="${article.coverImage || 'default-cover.jpg'}" alt="${article.title}">
+                </div>
+                <div class="article-content">
+                    <h3>${article.title}</h3>
+                    <p>${article.excerpt || article.content.substring(0, 150)}...</p>
+                    <div class="article-meta">
+                        <span class="author">
+                            <img src="${article.authorAvatar || 'default-avatar.jpg'}" alt="${article.authorName}">
+                            ${article.authorName}
+                        </span>
+                        <span class="date">${new Date(article.timestamp).toLocaleDateString()}</span>
+                    </div>
+                    <a href="read.html?id=${article.id}" class="read-more">Read More</a>
+                    ${auth.currentUser?.email === 'iamnikithamal@gmail.com' ? 
+                        `<button onclick="deletePost('${article.id}')" class="delete-btn">Delete</button>` : ''}
+                </div>
+            `;
+            return card;
         }
 
-        // Add these functions to handle the dropdown menu and edit dialog
-        window.sharePost = async function(docId) {
-            try {
-                await navigator.share({
-                    title: 'Share Post',
-                    url: `${window.location.origin}/read.html?id=${docId}`
-                });
-            } catch (error) {
-                console.error('Error sharing:', error);
-            }
-        };
-
-        window.reportPost = function(docId) {
-            // Implement report functionality
-            alert('Report submitted');
-        };
-
-        window.editPost = async function(docId) {
-            const postDoc = await getDoc(doc(db, "posts", docId));
-            const postData = postDoc.data();
-            
-            document.getElementById('editTitle').value = postData.title;
-            document.getElementById('editCategory').value = postData.category;
-            document.getElementById('editContent').value = postData.content;
-            
-            document.getElementById('editForm').onsubmit = async (e) => {
-                e.preventDefault();
-                const updates = {
-                    title: document.getElementById('editTitle').value,
-                    category: document.getElementById('editCategory').value,
-                    content: document.getElementById('editContent').value,
-                    lastEdited: new Date()
-                };
-                
-                await updateDoc(doc(db, "posts", docId), updates);
-                closeEditDialog();
-                loadArticles(true); // Reload articles
-            };
-            
-            openEditDialog();
-        };
-
-        window.archivePost = async function(docId) {
-            if (confirm('Are you sure you want to archive this post?')) {
-                const postDoc = await getDoc(doc(db, "posts", docId));
-                const postData = postDoc.data();
-                
-                // Move to archives collection
-                await setDoc(doc(db, "archives", docId), {
-                    ...postData,
-                    archivedAt: new Date()
-                });
-                
-                // Delete from posts collection
-                await deleteDoc(doc(db, "posts", docId));
-                
-                loadArticles(true); // Reload articles
-            }
-        };
-
-        window.deletePost = async function(docId) {
+        window.deletePost = async function(postId) {
             if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-                await deleteDoc(doc(db, "posts", docId));
-                loadArticles(true); // Reload articles
+                await remove(ref(db, `posts/${postId}`));
+                loadArticles(true);
             }
         };
 
@@ -1281,10 +1130,11 @@
         // Utility function to initialize likes for existing posts
         async function initializePostLikes() {
             try {
-                const querySnapshot = await getDocs(collection(db, "posts"));
-                querySnapshot.forEach(async (doc) => {
-                    if (!doc.data().likes) {
-                        await updateDoc(doc.ref, { likes: [] });
+                const querySnapshot = await get(query(ref(db, 'posts'), orderByChild('likes'), limitToLast(100)));
+                querySnapshot.forEach(async (childSnapshot) => {
+                    const article = childSnapshot.val();
+                    if (!article.likes) {
+                        await update(ref(db, `posts/${childSnapshot.key}/likes`), []);
                     }
                 });
             } catch (error) {
@@ -1298,7 +1148,7 @@
         // Update the createPost function if you have one
         async function createPost(postData) {
             try {
-                await addDoc(collection(db, "posts"), {
+                await set(ref(db, 'posts'), {
                     ...postData,
                     likes: [], // Initialize likes array
                     timestamp: new Date()
@@ -1365,7 +1215,7 @@
                 document.querySelector('.category-tag.active').classList.remove('active');
                 tag.classList.add('active');
                 currentCategory = tag.dataset.category;
-                lastDoc = null;
+                lastKey = null;
                 loadArticles(true);
             });
         });

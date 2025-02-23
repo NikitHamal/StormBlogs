@@ -71,12 +71,14 @@
         }
 
         .profile-avatar {
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             border: 4px solid white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 1rem;
+            object-fit: cover;
+            background: #f8f9fa;
         }
 
         .profile-name {
@@ -503,21 +505,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            collection, 
-            query, 
-            where, 
-            getDocs, 
-            doc, 
-            getDoc, 
-            orderBy, 
-            limit, 
-            updateDoc,
-            arrayUnion,
-            serverTimestamp,
-            startAfter
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getDatabase, ref, get, set, update, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -532,7 +520,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
-        const db = getFirestore();
+        const db = getDatabase();
 
         // Global variables
         let currentUser = null;
@@ -560,12 +548,12 @@
 
         async function recordProfileView() {
             try {
-                const userRef = doc(db, "users", userId);
-                const userDoc = await getDoc(userRef);
+                const userRef = ref(db, 'users/' + userId);
+                const userSnapshot = await get(userRef);
                 
-                if (!userDoc.exists()) return;
+                if (!userSnapshot.exists()) return;
 
-                const userData = userDoc.data();
+                const userData = userSnapshot.val();
                 const profilePictures = userData.profilePictures || [];
                 
                 // Check if user has viewed in last 24 hours
@@ -575,13 +563,13 @@
                 );
 
                 if (!lastView) {
-                    await updateDoc(userRef, {
-                        profilePictures: arrayUnion({
+                    await update(userRef, {
+                        profilePictures: {
                             url: currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`,
                             timestamp: new Date().toISOString(),
                             viewerId: currentUser.uid,
                             viewerName: currentUser.displayName || 'Anonymous'
-                        })
+                        }
                     });
                 }
             } catch (error) {
@@ -593,14 +581,15 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
             try {
                 // Get user document
-                const userDoc = await getDoc(doc(db, "users", userId));
-                if (!userDoc.exists()) {
+                const userRef = ref(db, 'users/' + userId);
+                const userSnapshot = await get(userRef);
+                if (!userSnapshot.exists()) {
                     showError('User not found');
                     window.location.href = 'users.html';
                     return;
                 }
 
-                const userData = userDoc.data();
+                const userData = userSnapshot.val();
 
                 // Update page title
                 document.title = `${userData.displayName || 'Anonymous'} - StormBlogs`;
@@ -747,12 +736,9 @@
                 let articlesQuery;
                 
                 // First try to get posts without ordering to check if user has any
-                const basicQuery = query(
-                    collection(db, "posts"),
-                    where("authorId", "==", userId)
-                );
+                const basicQuery = ref(db, 'posts');
                 
-                const checkSnapshot = await getDocs(basicQuery);
+                const checkSnapshot = await get(basicQuery);
                 
                 if (checkSnapshot.empty) {
                     // User has no posts
@@ -769,24 +755,13 @@
                 }
 
                 // If user has posts, proceed with ordered query
-                articlesQuery = query(
-                    collection(db, "posts"),
-                    where("authorId", "==", userId),
-                    orderBy("timestamp", "desc"),
-                    limit(ARTICLES_PER_PAGE)
-                );
+                articlesQuery = ref(db, 'posts');
 
                 if (loadMore && lastArticle) {
-                    articlesQuery = query(
-                        collection(db, "posts"),
-                        where("authorId", "==", userId),
-                        orderBy("timestamp", "desc"),
-                        startAfter(lastArticle),
-                        limit(ARTICLES_PER_PAGE)
-                    );
+                    articlesQuery = ref(db, 'posts/' + lastArticle);
                 }
 
-                const articlesSnapshot = await getDocs(articlesQuery);
+                const articlesSnapshot = await get(articlesQuery);
                 
                 if (articlesSnapshot.empty) {
                     hasMoreArticles = false;
@@ -801,8 +776,8 @@
                     return;
                 }
 
-                lastArticle = articlesSnapshot.docs[articlesSnapshot.docs.length - 1];
-                hasMoreArticles = articlesSnapshot.docs.length === ARTICLES_PER_PAGE;
+                lastArticle = articlesSnapshot.key;
+                hasMoreArticles = articlesSnapshot.size === ARTICLES_PER_PAGE;
 
                 const articlesContainer = document.getElementById('articlesContainer');
                 if (!loadMore) {
@@ -810,7 +785,7 @@
                 }
 
                 articlesSnapshot.forEach(doc => {
-                    const article = doc.data();
+                    const article = doc.val();
                     
                     // Calculate stats
                     const views = article.viewHistory?.length || 0;
@@ -824,7 +799,7 @@
 
                     const articleCard = document.createElement('div');
                     articleCard.className = 'article-card';
-                    articleCard.onclick = () => window.location.href = `read.html?id=${doc.id}`;
+                    articleCard.onclick = () => window.location.href = `read.html?id=${doc.key}`;
                     articleCard.innerHTML = `
                         <h3 class="article-title">${article.title}</h3>
                         <p class="article-excerpt">${excerpt}</p>
@@ -852,6 +827,13 @@
                 });
 
             } catch (error) {
+                if (error.code === 'failed-precondition' || error.message.includes('requires an index')) {
+                    // Use basic query results if index missing
+                    checkSnapshot.forEach(doc => {
+                        const article = doc.val();
+                        // Create and append article card
+                    });
+                }
                 console.error('Error loading articles:', error);
                 const articlesContainer = document.getElementById('articlesContainer');
                 
@@ -879,11 +861,8 @@
         async function loadUserStats(userData) {
             try {
                 // Get all user's articles for comprehensive stats
-                const articlesQuery = query(
-                    collection(db, "posts"),
-                    where("authorId", "==", userId)
-                );
-                const articlesSnapshot = await getDocs(articlesQuery);
+                const articlesQuery = ref(db, 'posts');
+                const articlesSnapshot = await get(articlesQuery);
                 
                 // Initialize stats
                 const stats = {
@@ -899,7 +878,7 @@
 
                 // Process articles for activity data
                 articlesSnapshot.forEach(doc => {
-                    const article = doc.data();
+                    const article = doc.val();
                     
                     // Track activity by date
                     if (article.createdAt) {

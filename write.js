@@ -1,32 +1,32 @@
 // Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-    getFirestore, 
-    doc, 
-    getDoc, 
-    setDoc, 
-    updateDoc, 
-    collection, 
-    serverTimestamp,
-    getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getDatabase, ref, get, set, update, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai@0.3.0";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
     authDomain: "storm-blogs.firebaseapp.com",
+    databaseURL: "https://storm-blogs-default-rtdb.firebaseio.com",
     projectId: "storm-blogs",
     storageBucket: "storm-blogs.firebasestorage.app",
     messagingSenderId: "158567556221",
     appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
 };
 
-// Initialize Firebase services
+// Initialize Firebase and Gemini
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-const db = getFirestore();
+const auth = getAuth(app);
+const db = getDatabase(app);
+const genAI = new GoogleGenerativeAI("AIzaSyACk4YyXgd_VOvBlFWV8r17LuwkT1iGfmg");
+const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    systemInstruction: {
+        parts: [{ text: "You are an expert assistant for this article." }]
+    }
+});
 const storage = getStorage();
 
 // Global state
@@ -36,6 +36,8 @@ let draftInterval = null;
 let lastSavedContent = '';
 let isPublishing = false;
 let selectedThemes = new Set();
+let articleContext = '';
+let chatHistory = [];
 
 // Constants
 const AUTOSAVE_INTERVAL = 30000; // 30 seconds
@@ -334,8 +336,8 @@ function calculateOptimizedDimensions(img, maxWidth) {
 async function storeImageInfo(imageInfo) {
     try {
         // Store in user's images collection
-        const imageDoc = doc(collection(db, `users/${currentUser.uid}/images`));
-        await setDoc(imageDoc, {
+        const imageRef = ref(db, `users/${currentUser.uid}/images/${Date.now()}`);
+        await set(imageRef, {
             ...imageInfo,
             userId: currentUser.uid,
             userName: currentUser.displayName || 'Anonymous'
@@ -368,9 +370,17 @@ async function publishPost() {
         // Get post data
         const postData = await preparePostData();
 
-        // Save to Firestore
+        // Save to Realtime Database
         const postId = Date.now().toString();
-        await setDoc(doc(db, "posts", postId), postData);
+        await set(ref(db, `posts/${postId}/data`), postData);
+
+        // Initialize metrics
+        await update(ref(db, `posts/${postId}`), {
+            likes: 0,
+            views: 0,
+            likedBy: [],
+            comments: []
+        });
 
         // Clear draft
         localStorage.removeItem(DRAFT_KEY);
@@ -380,10 +390,9 @@ async function publishPost() {
     } catch (error) {
         console.error('Error publishing post:', error);
         showNotification('Failed to publish post', 'error');
-        
         // Reset publish button
         const publishButton = document.getElementById('publishButton');
-        publishButton.innerHTML = '<i class="fas fa-paper-plane"></i> Publish';
+        publishButton.innerHTML = originalText;
         publishButton.disabled = false;
     } finally {
         isPublishing = false;
@@ -395,8 +404,9 @@ async function preparePostData() {
     const plainText = editor.getText().trim();
     
     // Get user data to include username
-    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-    const userData = userDoc.data();
+    const userRef = ref(db, `users/${currentUser.uid}/data`);
+    const snapshot = await get(userRef);
+    const userData = snapshot.val();
     
     // Extract image URLs from content
     const imageUrls = extractImageUrls(content);
@@ -404,14 +414,12 @@ async function preparePostData() {
     // Update image docs with post ID
     if (imageUrls.length > 0) {
         try {
-            const imagesQuery = collection(db, `users/${currentUser.uid}/images`);
-            const snapshot = await getDocs(imagesQuery);
-            snapshot.forEach(async (doc) => {
-                const imageData = doc.data();
-                if (imageUrls.includes(imageData.url)) {
-                    await updateDoc(doc.ref, {
-                        postId: Date.now().toString()
-                    });
+            const imagesRef = ref(db, `users/${currentUser.uid}/images`);
+            const snapshot = await get(imagesRef);
+            const images = snapshot.val();
+            imageUrls.forEach(url => {
+                if (images[url]) {
+                    update(ref(db, `users/${currentUser.uid}/images/${url}/postId`), Date.now().toString());
                 }
             });
         } catch (error) {
@@ -427,7 +435,7 @@ async function preparePostData() {
         authorName: userData.displayName || 'Anonymous',
         authorUsername: userData.username,
         authorEmail: currentUser.email,
-        authorAvatar: currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`,
+        authorPhotoURL: currentUser.photoURL,
         category: document.getElementById('categoryInput').value,
         themes: Array.from(selectedThemes),
         timestamp: serverTimestamp(),
@@ -437,11 +445,7 @@ async function preparePostData() {
         likes: 0,
         views: 0,
         likedBy: [],
-        viewHistory: [],
-        readTimeHistory: [],
         comments: [],
-        shares: [],
-        bookmarks: [],
         images: imageUrls
     };
 }
@@ -585,4 +589,12 @@ onAuthStateChanged(auth, (user) => {
 window.addTheme = addTheme;
 window.removeTheme = removeTheme;
 window.previewPost = previewPost;
-window.publishPost = publishPost; 
+window.publishPost = publishPost;
+
+// Make all functions globally available
+window.checkUserLike = async (articleId) => {
+    if (!auth.currentUser) return false;
+    const articleRef = ref(db, `posts/${articleId}/likedBy/${auth.currentUser.uid}`);
+    const snapshot = await get(articleRef);
+    return snapshot.exists();
+}; 

@@ -1003,8 +1003,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, updateProfile, updateEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, arrayUnion, getDoc, orderBy, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getDatabase, ref as databaseRef, get, set, update, child, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -1019,7 +1019,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
-        const db = getFirestore();
+        const db = getDatabase();
         const storage = getStorage();
         const IMGBB_API_KEY = 'cae25a5efbe778e17c1db8b6f4e44cd7';
 
@@ -1158,184 +1158,7 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
-                    const userRef = doc(db, "users", user.uid);
-                    const docSnapshot = await getDoc(userRef);
-                    
-                    // If user document doesn't exist, create it
-                    if (!docSnapshot.exists()) {
-                        await setDoc(userRef, {
-                            username: user.displayName || 'Anonymous',
-                            email: user.email,
-                            avatarUrl: user.photoURL,
-                            joinDate: serverTimestamp(),
-                            bio: 'A passionate writer and storyteller.',
-                            totalViews: 0,
-                            totalLikes: 0,
-                            totalComments: 0,
-                            totalPosts: 0,
-                            profileViews: [],
-                            verified: false,
-                            isPro: false
-                        });
-                    }
-
-                    // Get the latest user data
-                    const userData = docSnapshot.exists() ? docSnapshot.data() : await getDoc(userRef).then(doc => doc.data());
-                    
-                    // Update profile UI
-                    document.getElementById('profileName').textContent = userData.displayName || 'Anonymous';
-                    document.getElementById('profileEmail').textContent = userData.email;
-                    document.getElementById('profileBio').textContent = userData.bio || 'A passionate writer and storyteller.';
-                    document.getElementById('profileAvatar').src = userData.avatarUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
-                    
-                    // Load profile pictures history
-                    const profilePicturesHistory = document.getElementById('profilePicturesHistory');
-                    if (userData.profilePictures && userData.profilePictures.length > 0) {
-                        profilePicturesHistory.innerHTML = userData.profilePictures
-                            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                            .slice(0, 5) // Show last 5 pictures
-                            .map(pic => `
-                                <div class="history-item">
-                                    <img src="${pic.url}" 
-                                         alt="Profile picture history" 
-                                         class="history-avatar" 
-                                         onclick="useHistoryPicture('${pic.url}')"
-                                         title="Click to use this picture">
-                                    <div class="history-date">
-                                        ${new Date(pic.timestamp).toLocaleDateString()}
-                        </div>
-                                </div>
-                            `).join('');
-                    } else {
-                        profilePicturesHistory.style.display = 'none';
-                    }
-                    
-                    // Update stats
-                    document.getElementById('articlesCount').textContent = userData.totalPosts || 0;
-                    document.getElementById('viewsCount').textContent = userData.totalViews || 0;
-                    document.getElementById('likesCount').textContent = userData.totalLikes || 0;
-                    document.getElementById('commentsCount').textContent = userData.totalComments || 0;
-
-                    // Show verified badge if applicable
-                    if (userData.verified) {
-                        document.getElementById('verifiedBadge').style.display = 'inline-flex';
-                    }
-
-                    // Show pro features if applicable
-                    if (userData.isPro) {
-                        document.getElementById('profileViewsStat').style.display = 'block';
-                        document.getElementById('profileViewsCount').textContent = userData.profileViews?.length || 0;
-                        document.getElementById('profileViewersCard').style.display = 'block';
-                    }
-
-                    // Populate form fields
-                    document.getElementById('name').value = userData.displayName || '';
-                    document.getElementById('username').value = userData.username || '';
-                    document.getElementById('bio').value = userData.bio || '';
-                    document.getElementById('location').value = userData.location || '';
-                    document.getElementById('website').value = userData.website || '';
-                    document.getElementById('occupation').value = userData.occupation || '';
-                    document.getElementById('interests').value = userData.interests?.join(', ') || '';
-                    document.getElementById('email').value = userData.email || '';
-
-                    // Populate social media fields
-                    if (userData.social) {
-                        document.getElementById('instagram').value = userData.social.instagram || '';
-                        document.getElementById('twitter').value = userData.social.twitter || '';
-                        document.getElementById('linkedin').value = userData.social.linkedin || '';
-                        document.getElementById('github').value = userData.social.github || '';
-                    }
-
-                    // Set privacy checkboxes
-                    if (userData.privacy) {
-                        document.getElementById('showEmail').checked = userData.privacy.showEmail || false;
-                        document.getElementById('showLocation').checked = userData.privacy.showLocation || false;
-                    }
-
-                    // Set avatar preview
-                    if (userData.avatarUrl) {
-                        const defaultAvatar = document.getElementById('defaultAvatar');
-                        const avatarPreview = document.getElementById('avatarPreview');
-                        defaultAvatar.style.display = 'none';
-                        avatarPreview.style.display = 'block';
-                        avatarPreview.src = userData.avatarUrl;
-                    }
-
-                    // Load user's articles
-                    try {
-                        // First check if user has any posts without ordering
-                        const basicQuery = query(
-                        collection(db, "posts"),
-                            where("authorId", "==", user.uid)
-                        );
-                        
-                        const checkSnapshot = await getDocs(basicQuery);
-                        const articlesGrid = document.getElementById('articlesGrid');
-                        
-                        if (checkSnapshot.empty) {
-                            articlesGrid.innerHTML = `
-                                <div style="text-align: center; padding: 2rem;">
-                                    <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                                    <p style="color: #666;">No articles yet</p>
-                        </div>
-                    `;
-                    return;
-                }
-
-                        // If user has posts, proceed with ordered query
-                        const articlesQuery = query(
-                            collection(db, "posts"),
-                            where("authorId", "==", user.uid),
-                            orderBy("timestamp", "desc")
-                        );
-
-                        try {
-                            const articlesSnapshot = await getDocs(articlesQuery);
-                            articlesGrid.innerHTML = '';
-
-                            if (articlesSnapshot.empty) {
-                                articlesGrid.innerHTML = `
-                                    <div style="text-align: center; padding: 2rem;">
-                                        <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                                        <p style="color: #666;">No articles yet</p>
-                                    </div>
-                                `;
-                            } else {
-                                articlesSnapshot.forEach(doc => {
-                                    const article = doc.data();
-                                    const card = createArticleCard(doc.id, article);
-                                    articlesGrid.appendChild(card);
-                                });
-                            }
-            } catch (error) {
-                            // Handle index error gracefully
-                            if (error.code === 'failed-precondition' || error.message.includes('requires an index')) {
-                                articlesGrid.innerHTML = `
-                                    <div style="text-align: center; padding: 2rem;">
-                                        <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                                        <p style="color: #666;">No articles yet</p>
-                                    </div>
-                                `;
-                            } else {
-                                console.error('Error loading articles:', error);
-                                articlesGrid.innerHTML = `
-                                    <div style="text-align: center; padding: 2rem;">
-                                        <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
-                                        <p style="color: #666;">Error loading articles. Please try again later.</p>
-                    </div>
-                `;
-            }
-                        }
-                    } catch (error) {
-                        console.error('Error checking for articles:', error);
-                        document.getElementById('articlesGrid').innerHTML = `
-                            <div style="text-align: center; padding: 2rem;">
-                                <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
-                                <p style="color: #666;">Error loading articles. Please try again later.</p>
-                            </div>
-                        `;
-                    }
-
+                    await loadDataFromFirebase(user);
                     hideLoading();
                 } catch (error) {
                     console.error("Error loading profile:", error);
@@ -1346,6 +1169,155 @@
                 window.location.href = 'login.html';
             }
         });
+
+        async function loadDataFromFirebase(user) {
+            const userRefProfile = databaseRef(db, 'users/' + user.uid);
+            const userSnapshotProfile = await get(userRefProfile);
+
+            if (userSnapshotProfile.exists()) {
+                const userData = userSnapshotProfile.val();
+
+                // Update profile UI
+                document.getElementById('profileName').textContent = userData.displayName || 'Anonymous';
+                document.getElementById('profileEmail').textContent = userData.email;
+                document.getElementById('profileBio').textContent = userData.bio || 'A passionate writer and storyteller.';
+                document.getElementById('profileAvatar').src = userData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
+
+                // Load profile pictures history
+                const profilePicturesHistory = document.getElementById('profilePicturesHistory');
+                if (userData.profilePictures && userData.profilePictures.length > 0) {
+                    profilePicturesHistory.innerHTML = userData.profilePictures
+                        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                        .slice(0, 5) // Show last 5 pictures
+                        .map(pic => `
+                            <div class="history-item">
+                                <img src="${pic.url}" 
+                                     alt="Profile picture history" 
+                                     class="history-avatar" 
+                                     onclick="useHistoryPicture('${pic.url}')"
+                                     title="Click to use this picture">
+                                <div class="history-date">
+                                    ${new Date(pic.timestamp).toLocaleDateString()}
+                                </div>
+                            </div>
+                        `).join('');
+                } else {
+                    profilePicturesHistory.style.display = 'none';
+                }
+
+                // Update stats
+                document.getElementById('articlesCount').textContent = userData.totalPosts || 0;
+                document.getElementById('viewsCount').textContent = userData.totalViews || 0;
+                document.getElementById('likesCount').textContent = userData.totalLikes || 0;
+                document.getElementById('commentsCount').textContent = userData.totalComments || 0;
+
+                // Show verified badge if applicable
+                if (userData.verified) {
+                    document.getElementById('verifiedBadge').style.display = 'inline-flex';
+                }
+
+                // Show pro features if applicable
+                if (userData.isPro) {
+                    document.getElementById('profileViewsStat').style.display = 'block';
+                    document.getElementById('profileViewsCount').textContent = userData.profileViews?.length || 0;
+                    document.getElementById('profileViewersCard').style.display = 'block';
+                }
+
+                // Populate form fields
+                document.getElementById('name').value = userData.displayName || '';
+                document.getElementById('username').value = userData.username || '';
+                document.getElementById('bio').value = userData.bio || '';
+                document.getElementById('location').value = userData.location || '';
+                document.getElementById('website').value = userData.website || '';
+                document.getElementById('occupation').value = userData.occupation || '';
+                document.getElementById('interests').value = userData.interests?.join(', ') || '';
+                document.getElementById('email').value = userData.email || '';
+
+                // Populate social media fields
+                if (userData.social) {
+                    document.getElementById('instagram').value = userData.social.instagram || '';
+                    document.getElementById('twitter').value = userData.social.twitter || '';
+                    document.getElementById('linkedin').value = userData.social.linkedin || '';
+                    document.getElementById('github').value = userData.social.github || '';
+                }
+
+                // Set privacy checkboxes
+                if (userData.privacy) {
+                    document.getElementById('showEmail').checked = userData.privacy.showEmail || false;
+                    document.getElementById('showLocation').checked = userData.privacy.showLocation || false;
+                }
+
+                // Set avatar preview
+                if (userData.photoURL) {
+                    const defaultAvatar = document.getElementById('defaultAvatar');
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    defaultAvatar.style.display = 'none';
+                    avatarPreview.style.display = 'block';
+                    avatarPreview.src = userData.photoURL;
+                } else {
+                    avatarPreview.style.display = 'none';
+                    defaultAvatar.style.display = 'flex';
+                }
+
+                // Load user's articles
+                try {
+                    // Get all posts
+                    const postsRef = databaseRef(db, "posts");
+                    const snapshot = await get(postsRef);
+                    const articlesGrid = document.getElementById('articlesGrid');
+
+                    if (!snapshot.exists()) {
+                        articlesGrid.innerHTML = `
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                <p style="color: #666;">No articles yet</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Filter and sort posts for the current user
+                    const articles = [];
+                    snapshot.forEach(child => {
+                        const post = child.val();
+                        if (post.authorId === user.uid) {
+                            articles.push({ id: child.key, data: post });
+                        }
+                    });
+
+                    if (articles.length === 0) {
+                        articlesGrid.innerHTML = `
+                            <div style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                                <p style="color: #666;">No articles yet</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Sort articles by timestamp descending
+                    articles.sort((a, b) => new Date(b.data.timestamp) - new Date(a.data.timestamp));
+
+                    // Display articles
+                    articlesGrid.innerHTML = '';
+                    articles.forEach(article => {
+                        const card = createArticleCard(article.id, article.data);
+                        articlesGrid.appendChild(card);
+                    });
+                } catch (error) {
+                    console.error('Error loading articles:', error);
+                    const articlesGrid = document.getElementById('articlesGrid');
+                    articlesGrid.innerHTML = `
+                        <div style="text-align: center; padding: 2rem;">
+                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
+                            <p style="color: #666;">Error loading articles. Please try again later.</p>
+                        </div>
+                    `;
+                }
+            } else {
+                console.error('User profile does not exist.');
+            }
+        }
 
         // Helper function to create article card
         function createArticleCard(id, article) {
@@ -1381,8 +1353,11 @@
                 try {
                     const user = auth.currentUser;
                     await updateProfile(user, { photoURL: url });
-                    await updateDoc(doc(db, "users", user.uid), {
-                        avatarUrl: url
+                    await update(databaseRef(db, 'users/' + user.uid + '/profilePictures'), {
+                        url: url,
+                        timestamp: new Date().toISOString(),
+                        viewerId: user.uid,
+                        viewerName: user.displayName || 'Anonymous'
                     });
                     showToast('Profile picture updated successfully!', 'success');
                     setTimeout(() => location.reload(), 1000);
@@ -1424,14 +1399,14 @@
                 }
 
                 // Check if username is taken (if changed)
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                const currentUsername = userDoc.data()?.username;
-                if (newUsername !== currentUsername) {
-                    const usersRef = collection(db, "users");
-                    const q = query(usersRef, where("username", "==", newUsername));
-                    const querySnapshot = await getDocs(q);
-                    if (!querySnapshot.empty) {
-                        throw new Error('Username is already taken');
+                const userRefProfile = databaseRef(db, 'users/' + user.uid + '/username');
+                const currentUsername = await get(userRefProfile);
+                if (newUsername !== currentUsername.val()) {
+                    const usersRef = databaseRef(db, 'users');
+                    const q = query(usersRef, orderByChild('username'), equalTo(newUsername));
+                    const querySnapshot = await get(q);
+                    if (!querySnapshot.exists()) {
+                        // ... existing code ...
                     }
                 }
 

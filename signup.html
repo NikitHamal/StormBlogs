@@ -196,6 +196,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            border-radius: 50%;
         }
 
         .avatar-preview .default-avatar {
@@ -328,10 +329,18 @@
             width: 100%;
             height: 100%;
             background: rgba(255, 255, 255, 0.9);
-            display: none;
+            display: flex;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
 
         .loading-spinner {
@@ -354,6 +363,14 @@
             transform: translateX(150%);
             transition: transform 0.3s ease;
             z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .toast.active {
+            transform: translateX(0);
+            opacity: 1;
+            visibility: visible;
         }
 
         .toast.success {
@@ -364,8 +381,8 @@
             background: var(--error-color);
         }
 
-        .toast.show {
-            transform: translateX(0);
+        .toast.warning {
+            background: #ff9800;
         }
 
         @keyframes spin {
@@ -386,1011 +403,14 @@
         .submit-btn:disabled {
             background: #ccc;
             transform: none !important;
-        }
-    </style>
-</head>
-<body>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-spinner"></div>
-    </div>
-
-    <div id="toast" class="toast"></div>
-
-    <header class="header">
-        <div class="header-content">
-            <a href="index.html" class="logo">
-                <img src="logo.png" alt="Logo">
-                <h4 style="margin: 0;">/Storm Blogs</h4>
-            </a>
-        </div>
-    </header>
-
-    <div class="container">
-        <form class="signup-form" id="signupForm">
-            <h2 class="form-title">Create Your Account</h2>
-            <div class="error-message" id="errorMessage"></div>
-
-            <div class="form-group">
-                <label class="text-center d-block">Profile Picture</label>
-                <div class="avatar-upload">
-                    <div class="avatar-edit">
-                        <input type="file" id="avatar" accept="image/*" onchange="previewImage(event)">
-                        <label for="avatar">
-                            <i class="fas fa-camera"></i>
-                        </label>
-                    </div>
-                    <div class="avatar-preview">
-                        <div class="default-avatar" id="defaultAvatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <img src="" alt="Avatar Preview" id="avatarPreview" style="display: none;">
-                        <div class="upload-text">Change Photo</div>
-                    </div>
-                </div>
-                <div class="avatar-requirements">
-                    Recommended: Square image, max 5MB
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email *</label>
-                <input type="email" id="email" required>
-            </div>
-
-            <div class="form-group">
-                <label for="username">Username *</label>
-                <input type="text" id="username" required pattern="[a-zA-Z0-9_]{3,20}" 
-                    title="Username must be 3-20 characters long and can only contain letters, numbers, and underscores">
-            </div>
-
-            <div class="form-group">
-                <label for="displayName">Display Name *</label>
-                <input type="text" id="displayName" required>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password *</label>
-                <input type="password" id="password" required>
-                <div class="password-strength">
-                    <div class="strength-bar">
-                        <div id="passwordStrength"></div>
-                    </div>
-                    <span id="strengthText"></span>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="bio">Bio</label>
-                <textarea id="bio" placeholder="Tell us about yourself..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="location">Location</label>
-                <input type="text" id="location" placeholder="City, Country">
-            </div>
-
-            <div class="form-group">
-                <label for="website">Personal Website</label>
-                <input type="url" id="website" placeholder="https://your-website.com">
-            </div>
-
-            <div class="form-group">
-                <label for="occupation">Occupation</label>
-                <input type="text" id="occupation" placeholder="What do you do?">
-            </div>
-
-            <div class="form-group">
-                <label for="interests">Interests</label>
-                <input type="text" id="interests" placeholder="Comma-separated list of interests">
-            </div>
-
-            <div class="form-group">
-                <label for="dob">Date of Birth *</label>
-                <input type="date" id="dob" required>
-            </div>
-
-            <div class="form-group">
-                <label>Social Media Links</label>
-                <div class="social-inputs">
-                    <div class="social-input">
-                        <i class="fab fa-instagram"></i>
-                        <input type="text" id="instagram" placeholder="Instagram username">
-                    </div>
-                    <div class="social-input">
-                        <i class="fab fa-twitter"></i>
-                        <input type="text" id="twitter" placeholder="Twitter username">
-                    </div>
-                    <div class="social-input">
-                        <i class="fab fa-linkedin"></i>
-                        <input type="text" id="linkedin" placeholder="LinkedIn username">
-                    </div>
-                    <div class="social-input">
-                        <i class="fab fa-github"></i>
-                        <input type="text" id="github" placeholder="GitHub username">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Privacy Settings</label>
-                <div class="checkbox-group">
-                    <label>
-                        <input type="checkbox" id="showEmail"> Show email on profile
-                    </label>
-                    <label>
-                        <input type="checkbox" id="showLocation"> Show location on profile
-                    </label>
-                </div>
-            </div>
-
-            <button type="submit" class="submit-btn">Create Account</button>
-
-            <p class="login-link">
-                Already have an account? <a href="login.html">Login here</a>
-            </p>
-        </form>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { 
-            getAuth, 
-            createUserWithEmailAndPassword,
-            updateProfile 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { 
-            getFirestore, 
-            doc, 
-            setDoc,
-            serverTimestamp,
-            collection,
-            query,
-            where,
-            getDocs 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
-            authDomain: "storm-blogs.firebaseapp.com",
-            projectId: "storm-blogs",
-            storageBucket: "storm-blogs.firebasestorage.app",
-            messagingSenderId: "158567556221",
-            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
-        const db = getFirestore();
-
-        // Form validation
-        const form = document.getElementById('signupForm');
-        const usernameInput = document.getElementById('username');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const displayNameInput = document.getElementById('displayName');
-
-        // Username validation
-        usernameInput.addEventListener('input', debounce(async (e) => {
-            const username = e.target.value.trim();
-            if (username.length < 3) {
-                showFieldError(usernameInput, 'Username must be at least 3 characters');
-                return;
-            }
-            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                showFieldError(usernameInput, 'Username can only contain letters, numbers, and underscores');
-                return;
-            }
-            
-            try {
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, where("username", "==", username));
-                const querySnapshot = await getDocs(q);
-                
-                if (!querySnapshot.empty) {
-                    showFieldError(usernameInput, 'Username is already taken');
-                } else {
-                    clearFieldError(usernameInput);
-                }
-            } catch (error) {
-                console.error('Error checking username:', error);
-            }
-        }, 500));
-
-        // Email validation
-        emailInput.addEventListener('input', debounce(async (e) => {
-            const email = e.target.value.trim();
-            if (!isValidEmail(email)) {
-                showFieldError(emailInput, 'Please enter a valid email address');
-                return;
-            }
-            clearFieldError(emailInput);
-        }, 500));
-
-        // Password strength indicator
-        passwordInput.addEventListener('input', (e) => {
-            const password = e.target.value;
-            const strength = checkPasswordStrength(password);
-            updatePasswordStrength(strength);
-        });
-
-        // Handle form submission
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                return;
-            }
-
-            showLoading();
-
-            try {
-                const email = emailInput.value.trim();
-                const password = passwordInput.value;
-                const username = usernameInput.value.trim();
-                const displayName = displayNameInput.value.trim();
-                const bio = document.getElementById('bio').value.trim();
-                const location = document.getElementById('location').value.trim();
-                const website = document.getElementById('website').value.trim();
-                const occupation = document.getElementById('occupation').value.trim();
-                const interests = document.getElementById('interests').value.trim();
-                const dob = document.getElementById('dob').value;
-                const avatarFile = document.getElementById('avatar').files[0];
-
-                // Create auth account
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                // Upload avatar if provided
-                let avatarUrl = null;
-                if (avatarFile) {
-                    avatarUrl = await uploadToImgBB(avatarFile);
-                }
-
-                // Update auth profile
-                await updateProfile(user, {
-                    displayName: displayName,
-                    photoURL: avatarUrl
-                });
-
-                // Create user document
-                await setDoc(doc(db, "users", user.uid), {
-                    email,
-                    username,
-                    displayName,
-                    bio: bio || "Hey, thank you for using Storm Blogs",
-                    location: location || null,
-                    website: website || null,
-                    occupation: occupation || null,
-                    interests: interests ? 
-                        interests.split(',').map(i => i.trim()).filter(i => i) : [],
-                    dob: dob || null,
-                    avatarUrl,
-                    createdAt: serverTimestamp(),
-                    social: {
-                        instagram: document.getElementById('instagram').value.trim() || null,
-                        twitter: document.getElementById('twitter').value.trim() || null,
-                        linkedin: document.getElementById('linkedin').value.trim() || null,
-                        github: document.getElementById('github').value.trim() || null
-                    },
-                    privacy: {
-                        showEmail: document.getElementById('showEmail').checked,
-                        showLocation: document.getElementById('showLocation').checked
-                    },
-                    followers: [],
-                    following: [],
-                    likes: [],
-                    posts: 0,
-                    pro: false,
-                    profilePictures: avatarUrl ? [{
-                        url: avatarUrl,
-                        timestamp: new Date().toISOString()
-                    }] : [],
-                    restricted: false,
-                    verified: false,
-                    totalViews: 0,
-                    totalLikes: 0,
-                    lastActive: serverTimestamp()
-                });
-
-                showToast('Account created successfully!', 'success');
-                setTimeout(() => {
-                    window.location.href = 'profile.html';
-                }, 1500);
-
-            } catch (error) {
-                console.error('Error creating account:', error);
-                showError(getErrorMessage(error));
-                hideLoading();
-            }
-        });
-
-        function validateForm() {
-            let isValid = true;
-
-            // Required fields validation
-            const requiredFields = ['email', 'username', 'displayName', 'password', 'dob'];
-            requiredFields.forEach(field => {
-                const input = document.getElementById(field);
-                if (!input.value.trim()) {
-                    showFieldError(input, `${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
-                    isValid = false;
-                }
-            });
-
-            // Password strength validation
-            const password = passwordInput.value;
-            const strength = checkPasswordStrength(password);
-            if (strength < 3) {
-                showFieldError(passwordInput, 'Password must be stronger (include uppercase, lowercase, numbers, and special characters)');
-                isValid = false;
-            }
-
-            // Website URL validation
-            const website = document.getElementById('website').value.trim();
-            if (website && !isValidURL(website)) {
-                showFieldError(document.getElementById('website'), 'Please enter a valid URL');
-                isValid = false;
-            }
-
-            // Date of birth validation
-            const dob = document.getElementById('dob').value;
-            if (!dob) {
-                showFieldError(document.getElementById('dob'), 'Date of birth is required');
-                isValid = false;
-            } else if (!isValidAge(dob)) {
-                showFieldError(document.getElementById('dob'), 'You must be at least 13 years old');
-                isValid = false;
-            }
-
-            // Disable submit button if form is invalid
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.disabled = !isValid;
-            submitBtn.style.opacity = isValid ? '1' : '0.5';
-            submitBtn.style.cursor = isValid ? 'pointer' : 'not-allowed';
-
-            return isValid;
+            cursor: not-allowed;
         }
 
-        function showFieldError(input, message) {
-            const errorDiv = input.parentElement.querySelector('.field-error') || 
-                createFieldError(input);
-            errorDiv.textContent = message;
-            input.classList.add('error');
-        }
-
-        function clearFieldError(input) {
-            const errorDiv = input.parentElement.querySelector('.field-error');
-            if (errorDiv) {
-                errorDiv.remove();
-            }
-            input.classList.remove('error');
-        }
-
-        function createFieldError(input) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'field-error';
-            input.parentElement.appendChild(errorDiv);
-            return errorDiv;
-        }
-
-        function checkPasswordStrength(password) {
-            let strength = 0;
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]+/)) strength++;
-            if (password.match(/[A-Z]+/)) strength++;
-            if (password.match(/[0-9]+/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]+/)) strength++;
-            return strength;
-        }
-
-        function updatePasswordStrength(strength) {
-            const strengthBar = document.getElementById('passwordStrength');
-            const strengthText = document.getElementById('strengthText');
-            
-            const strengthLabels = ['Very Weak', 'Weak', 'Medium', 'Strong', 'Very Strong'];
-            const strengthColors = ['#ff4444', '#ffbb33', '#ffeb3b', '#00C851', '#007E33'];
-            
-            strengthBar.style.width = `${(strength / 5) * 100}%`;
-            strengthBar.style.backgroundColor = strengthColors[strength - 1];
-            strengthText.textContent = strengthLabels[strength - 1];
-        }
-
-        function isValidEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-
-        function isValidURL(url) {
-            try {
-                new URL(url);
-                return true;
-            } catch {
-                return false;
-            }
-        }
-
-        function isValidAge(dob) {
-            const age = new Date().getFullYear() - new Date(dob).getFullYear();
-            return age >= 13;
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        async function optimizeImage(file) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                img.onload = () => {
-                    // Calculate new dimensions
-                    let width = img.width;
-                    let height = img.height;
-                    const maxSize = 800;
-
-                    if (width > maxSize || height > maxSize) {
-                        if (width > height) {
-                            height = (height * maxSize) / width;
-                            width = maxSize;
-                        } else {
-                            width = (width * maxSize) / height;
-                            height = maxSize;
-                        }
-                    }
-
-                    // Set canvas dimensions
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    // Draw and compress image
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    // Convert to blob
-                    canvas.toBlob(
-                        (blob) => {
-                            if (blob) {
-                                resolve(new File([blob], file.name, {
-                                    type: 'image/jpeg',
-                                    lastModified: Date.now()
-                                }));
-                            } else {
-                                reject(new Error('Failed to optimize image'));
-                            }
-                        },
-                        'image/jpeg',
-                        0.8 // Quality
-                    );
-                };
-
-                img.onerror = () => reject(new Error('Failed to load image'));
-                img.src = URL.createObjectURL(file);
-            });
-        }
-
-        async function uploadToImgBB(file) {
-            try {
-                // Optimize image before upload
-                const optimizedFile = await optimizeImage(file);
-                
-                const formData = new FormData();
-                formData.append('image', optimizedFile);
-
-                const response = await fetch('https://api.imgbb.com/1/upload?key=cae25a5efbe778e17c1db8b6f4e44cd7', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (!data.success) throw new Error('Failed to upload image');
-
-                return data.data.url;
-            } catch (error) {
-                console.error('Error uploading image:', error);
-                throw new Error('Failed to upload profile picture');
-            }
-        }
-
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
-        }
-
-        function getErrorMessage(error) {
-            switch (error.code) {
-                case 'auth/email-already-in-use':
-                    return 'This email is already registered';
-                case 'auth/invalid-email':
-                    return 'Invalid email address';
-                case 'auth/operation-not-allowed':
-                    return 'Email/password accounts are not enabled';
-                case 'auth/weak-password':
-                    return 'Password should be at least 6 characters';
-                default:
-                    return error.message;
-            }
-        }
-
-        window.previewImage = function(event) {
-            const file = event.target.files[0];
-            const defaultAvatar = document.getElementById('defaultAvatar');
-            const avatarPreview = document.getElementById('avatarPreview');
-            
-            if (file) {
-                // Validate file size
-                if (file.size > 5 * 1024 * 1024) { // 5MB
-                    showFieldError(event.target, 'Image size should be less than 5MB');
-                    return;
-                }
-
-                // Validate file type
-                if (!file.type.startsWith('image/')) {
-                    showFieldError(event.target, 'Please select an image file');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Create a new image to check dimensions
-                    const img = new Image();
-                    img.onload = function() {
-                        // Check if image is reasonably square
-                        const ratio = this.width / this.height;
-                        if (ratio < 0.75 || ratio > 1.33) {
-                            showToast('For best results, use a square image', 'warning');
-                        }
-                        
-                        // Show preview
-                        defaultAvatar.style.display = 'none';
-                        avatarPreview.style.display = 'block';
-                        avatarPreview.src = e.target.result;
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                // Reset to default
-                defaultAvatar.style.display = 'flex';
-                avatarPreview.style.display = 'none';
-                avatarPreview.src = '';
-            }
-        };
-
-        function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('active');
-        }
-
-        function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('active');
-        }
-
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type}`;
-            toast.classList.add('active');
-            setTimeout(() => toast.classList.remove('active'), 3000);
-        }
-
-        // Add input event listeners for real-time validation
-        document.querySelectorAll('input, textarea').forEach(input => {
-            input.addEventListener('input', () => {
-                clearFieldError(input);
-                validateForm();
-            });
-        });
-
-        // Add blur event listeners for immediate validation when leaving a field
-        document.querySelectorAll('input, textarea').forEach(input => {
-            input.addEventListener('blur', () => {
-                if (input.required && !input.value.trim()) {
-                    showFieldError(input, `${input.id.charAt(0).toUpperCase() + input.id.slice(1)} is required`);
-                }
-                validateForm();
-            });
-        });
-    </script>
-</body>
-</html> 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - StormBlogs</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #111;
-            --error-color: #d32f2f;
-            --success-color: #2e7d32;
-            --border-color: #ddd;
-            --bg-color: #FDF7F2;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            line-height: 1.6;
-            background-color: var(--bg-color);
-            color: #333;
-        }
-
-        .header {
-            background: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            color: var(--primary-color);
-        }
-
-        .logo img {
-            height: 26px;
-            width: 26px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .signup-form {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .form-title {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: var(--primary-color);
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #555;
-            font-weight: 500;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        input[type="url"],
-        input[type="date"],
-        textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        input:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-
-        input.error {
-            border-color: var(--error-color);
-        }
-
-        .field-error {
+        .error-message {
             color: var(--error-color);
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
-
-        .password-strength {
-            margin-top: 0.5rem;
-        }
-
-        .strength-bar {
-            height: 4px;
-            background: #eee;
-            border-radius: 2px;
-            margin-bottom: 0.25rem;
-        }
-
-        #passwordStrength {
-            height: 100%;
-            width: 0;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-        }
-
-        #strengthText {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        .avatar-upload {
-            position: relative;
-            width: 120px;
-            margin: 0 auto;
-        }
-
-        .avatar-edit {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            z-index: 1;
-        }
-
-        .avatar-edit input {
+            text-align: center;
+            margin-bottom: 1rem;
             display: none;
-        }
-
-        .avatar-edit label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            margin-bottom: 0;
-            border-radius: 100%;
-            background: var(--primary-color);
-            border: 1px solid transparent;
-            cursor: pointer;
-            font-weight: normal;
-            transition: all 0.2s ease-in-out;
-        }
-
-        .avatar-edit label:hover {
-            background: #000;
-            transform: scale(1.05);
-        }
-
-        .avatar-edit label i {
-            color: white;
-            font-size: 14px;
-        }
-
-        .avatar-preview {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            border-radius: 100%;
-            border: 3px solid var(--primary-color);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
-            background: #f8f9fa;
-        }
-
-        .avatar-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .avatar-preview .default-avatar {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            color: #adb5bd;
-        }
-
-        .avatar-preview::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.4);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .avatar-preview:hover::after {
-            opacity: 1;
-        }
-
-        .avatar-preview:hover .upload-text {
-            opacity: 1;
-        }
-
-        .upload-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 0.8rem;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .avatar-requirements {
-            text-align: center;
-            color: #666;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .social-inputs {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .social-input {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #f5f5f5;
-            padding: 0.5rem;
-            border-radius: 8px;
-        }
-
-        .social-input i {
-            width: 24px;
-            text-align: center;
-            color: #666;
-        }
-
-        .social-input input {
-            border: none;
-            background: transparent;
-            flex: 1;
-        }
-
-        .social-input input:focus {
-            outline: none;
-        }
-
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .login-link {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #666;
-        }
-
-        .login-link a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 2rem;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            transform: translateX(150%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-
-        .toast.success {
-            background: var(--success-color);
-        }
-
-        .toast.error {
-            background: var(--error-color);
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 1rem auto;
-            }
-
-            .signup-form {
-                padding: 1.5rem;
-            }
-        }
-
-        .submit-btn:disabled {
-            background: #ccc;
-            transform: none !important;
         }
     </style>
 </head>
@@ -1544,22 +564,22 @@
             updateProfile 
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { 
-            getFirestore, 
-            doc, 
-            setDoc,
-            serverTimestamp,
-            collection,
+            getDatabase,
+            ref,
+            set,
+            get,
             query,
-            where,
-            getDocs 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+            orderByChild,
+            equalTo
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
             authDomain: "storm-blogs.firebaseapp.com",
+            databaseURL: "https://storm-blogs-default-rtdb.firebaseio.com",
             projectId: "storm-blogs",
-            storageBucket: "storm-blogs.firebasestorage.app",
+            storageBucket: "storm-blogs.appspot.com",
             messagingSenderId: "158567556221",
             appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
         };
@@ -1567,7 +587,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
-        const db = getFirestore();
+        const db = getDatabase();
 
         // Form validation
         const form = document.getElementById('signupForm');
@@ -1577,31 +597,22 @@
         const displayNameInput = document.getElementById('displayName');
 
         // Username validation
-        usernameInput.addEventListener('input', debounce(async (e) => {
-            const username = e.target.value.trim();
-            if (username.length < 3) {
-                showFieldError(usernameInput, 'Username must be at least 3 characters');
-                return;
-            }
-            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                showFieldError(usernameInput, 'Username can only contain letters, numbers, and underscores');
-                return;
-            }
-            
-            try {
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, where("username", "==", username));
-                const querySnapshot = await getDocs(q);
+        usernameInput.addEventListener('input', async () => {
+            const username = usernameInput.value.trim();
+            if (username.length >= 3) {
+                const usersRef = ref(db, 'users');
+                const usernameQuery = query(usersRef, orderByChild('username'), equalTo(username));
+                const snapshot = await get(usernameQuery);
                 
-                if (!querySnapshot.empty) {
-                    showFieldError(usernameInput, 'Username is already taken');
+                if (snapshot.exists()) {
+                    usernameInput.setCustomValidity('Username is already taken');
                 } else {
-                    clearFieldError(usernameInput);
+                    usernameInput.setCustomValidity('');
                 }
-            } catch (error) {
-                console.error('Error checking username:', error);
+            } else {
+                usernameInput.setCustomValidity('Username must be at least 3 characters long');
             }
-        }, 500));
+        });
 
         // Email validation
         emailInput.addEventListener('input', debounce(async (e) => {
@@ -1659,11 +670,14 @@
                     photoURL: avatarUrl
                 });
 
-                // Create user document
-                await setDoc(doc(db, "users", user.uid), {
-                    email,
-                    username,
-                    displayName,
+                // Save additional user data
+                await set(ref(db, `users/${user.uid}/`), {
+                    username: username,
+                    displayName: displayName,
+                    email: email,
+                    photoURL: avatarUrl,
+                    createdAt: Date.now(),
+                    lastLogin: Date.now(),
                     bio: bio || "Hey, thank you for using Storm Blogs",
                     location: location || null,
                     website: website || null,
@@ -1671,8 +685,6 @@
                     interests: interests ? 
                         interests.split(',').map(i => i.trim()).filter(i => i) : [],
                     dob: dob || null,
-                    avatarUrl,
-                    createdAt: serverTimestamp(),
                     social: {
                         instagram: document.getElementById('instagram').value.trim() || null,
                         twitter: document.getElementById('twitter').value.trim() || null,
@@ -1696,7 +708,7 @@
                     verified: false,
                     totalViews: 0,
                     totalLikes: 0,
-                    lastActive: serverTimestamp()
+                    lastActive: Date.now()
                 });
 
                 showToast('Account created successfully!', 'success');
@@ -1973,19 +985,27 @@
         };
 
         function showLoading() {
-            document.getElementById('loadingOverlay').classList.add('active');
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => overlay.classList.add('active'), 0);
         }
 
         function hideLoading() {
-            document.getElementById('loadingOverlay').classList.remove('active');
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.style.display = 'none', 300);
         }
 
-        function showToast(message, type) {
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
             toast.className = `toast ${type}`;
-            toast.classList.add('active');
-            setTimeout(() => toast.classList.remove('active'), 3000);
+            toast.style.display = 'block';
+            setTimeout(() => toast.classList.add('active'), 0);
+            setTimeout(() => {
+                toast.classList.remove('active');
+                setTimeout(() => toast.style.display = 'none', 300);
+            }, 3000);
         }
 
         // Add input event listeners for real-time validation

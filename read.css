@@ -1,0 +1,486 @@
+.definition-tooltip {
+    position: fixed;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 16px;
+    max-width: 300px;
+    z-index: 1000;
+}
+
+.definition-card h4 {
+    margin: 0 0 8px 0;
+    color: #2c3e50;
+}
+
+.definition-content {
+    font-size: 0.9em;
+    line-height: 1.5;
+}
+
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: #666;
+}
+    .article-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        margin-bottom: 30px;
+        max-height: 100%; /* Remove any height restrictions */
+    }
+
+    /* Quill content styling */
+    .ql-editor {
+        padding: 0;
+        white-space: pre-wrap; /* Preserve whitespace and wrapping */
+    }
+
+    .ql-editor p {
+        margin: 0 0 1.2em 0; /* Add proper paragraph spacing */
+    }
+
+    .ql-editor h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 1em 0 0.5em;
+        line-height: 1.3;
+    }
+
+    .ql-editor blockquote {
+        border-left: 3px solid #ccc;
+        margin: 1.5em 0;
+        padding: 0.5em 0 0.5em 1em; /* Adjusted padding */
+        font-size: 1.1rem;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .ql-editor ul,
+    .ql-editor ol {
+        margin: 0 0 1.2em 0;
+        padding-left: 1.5em;
+    }
+
+    .ql-editor li {
+        margin-bottom: 0.5em;
+    }
+
+    .ql-editor em {
+        font-style: italic;
+    }
+
+    .ql-editor strong {
+        font-weight: 600;
+    }
+
+    .ql-editor u {
+        text-decoration: underline;
+    }
+
+    .ql-editor pre {
+        background: #f5f5f5;
+        padding: 1em;
+        border-radius: 4px;
+        margin: 1.2em 0;
+        overflow-x: auto;
+    }
+
+    .ql-editor code {
+        background: #f5f5f5;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-size: 0.9em;
+        font-family: monospace;
+    }
+
+    /* Ensure proper spacing between different content types */
+    .ql-editor > * + * {
+        margin-top: 1em;
+    }
+
+    /* Adjust container padding */
+    .article-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 40px; /* Increased padding */
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Improve readability with max-width for text */
+    .article-content {
+        max-width: 680px;
+        margin: 0 auto 30px;
+    }
+
+    @media (max-width: 768px) {
+        .article-container {
+            margin: 0;
+            padding: 20px;
+            border-radius: 0;
+        }
+
+        .article-content {
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .ql-editor h1 {
+            font-size: 1.6rem;
+        }
+
+        .ql-editor h2 {
+            font-size: 1.4rem;
+        }
+
+        .ql-editor h3 {
+            font-size: 1.2rem;
+        }
+    }
+
+    .ai-features {
+        margin-top: 40px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+
+    .summary-btn, .chat-btn {
+        background: #333;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .summary-btn:hover, .chat-btn:hover {
+        background: #444;
+    }
+
+    .summary-btn:disabled {
+        background: #666;
+        cursor: not-allowed;
+    }
+
+    .summary-content {
+        margin-top: 20px;
+    }
+
+    .summary-box {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+    }
+
+    .summary-box h3 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    .chat-messages {
+        height: 400px;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin: 20px 0;
+    }
+
+    .chat-message {
+        margin-bottom: 15px;
+    }
+
+    .message-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .user-message .message-content {
+        flex-direction: row-reverse;
+    }
+
+    .message-content i {
+        background: #333;
+        color: white;
+        padding: 8px;
+        border-radius: 50%;
+    }
+
+    .message-content p {
+        background: white;
+        padding: 12px;
+        border-radius: 12px;
+        margin: 0;
+        max-width: 70%;
+    }
+
+    .user-message .message-content p {
+        background: #333;
+        color: white;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-input textarea {
+        flex: 1;
+        padding: 12px;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        font-family: inherit;
+        resize: none;
+    }
+
+    .chat-input textarea:focus {
+        outline: none;
+        border-color: #333;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 12px;
+        background: white;
+        border-radius: 12px;
+        width: fit-content;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #333;
+        border-radius: 50%;
+        animation: typing 1s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+
+    .error-message p {
+        color: #ff4757;
+    }
+
+/* Definition Popup Styles */
+#definitionPopup {
+    position: fixed;
+    z-index: 1000;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 300px;
+    transform: translate(-50%, -100%);
+    margin-top: -10px;
+}
+
+.popup-content {
+    padding: 15px;
+    position: relative;
+}
+
+.close-popup {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+/* Quiz Styles */
+.quiz-section {
+    margin: 40px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.quiz-btn {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    transition: all 0.3s;
+}
+
+.quiz-btn:hover {
+    background: #444;
+}
+
+.quiz-question {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.option:hover {
+    background: #f5f5f5;
+}
+
+.option.correct {
+    border-color: #4CAF50;
+    background: #E8F5E9;
+}
+
+.option.incorrect {
+    border-color: #FF5252;
+    background: #FFEBEE;
+}
+
+.explanation {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.correct-text {
+    color: #4CAF50;
+}
+
+.incorrect-text {
+    color: #FF5252;
+}
+
+.quiz-score {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: #E8F5E9;
+    border-radius: 8px;
+}
+
+.check-answers-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+.check-answers-btn:hover {
+    background: #444;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+}
+
+.error {
+    text-align: center;
+    padding: 20px;
+    color: #FF5252;
+}
+
+.summary-content {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.chat-messages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+body {
+    font-family: 'Poppins', serif;
+    color: #555;
+}
+
+.summary-btn, .chat-btn {
+    background: #333;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s;
+}
+
+.summary-btn:hover, .chat-btn:hover {
+    background: #444;
+}
