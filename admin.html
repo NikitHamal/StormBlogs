@@ -6,6 +6,7 @@
     <title>Admin Panel - StormBlogs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         .dashboard-card {
@@ -60,6 +61,15 @@
         .restrict-btn {
             background: #ff9800;
             color: white;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
         }
     </style>
 
@@ -203,6 +213,77 @@
                 notification.style.display = "none";
             }, 3000);
         }
+
+        // Function to fetch and display users
+        async function fetchAndDisplayUsers() {
+            const usersRef = ref(db, 'users');
+            try {
+                const snapshot = await get(usersRef);
+                const usersBody = document.getElementById('users-body');
+                usersBody.innerHTML = '';
+
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    Object.keys(users).forEach(userId => {
+                        const user = users[userId];
+                        const row = document.createElement('tr');
+                        
+                        // Format the date or show 'N/A' if not available
+                        const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
+                        
+                        // Determine user status
+                        let status = 'Active';
+                        let statusClass = 'text-success';
+                        if (user.banned) {
+                            status = 'Banned';
+                            statusClass = 'text-danger';
+                        } else if (user.suspended) {
+                            status = 'Suspended';
+                            statusClass = 'text-warning';
+                        }
+
+                        row.innerHTML = `
+                            <td>${user.displayName || 'Anonymous'}</td>
+                            <td>${user.email || 'N/A'}</td>
+                            <td>${joinDate}</td>
+                            <td>${user.totalPosts || 0}</td>
+                            <td class="${statusClass}">${status}</td>
+                            <td>
+                                <button class='action-btn delete-btn' onclick='deleteUser("${userId}")'>Delete</button>
+                                ${!user.banned ? `<button class='action-btn restrict-btn' onclick='banUser("${userId}")'>Ban</button>` : 
+                                `<button class='action-btn feature-btn' onclick='unbanUser("${userId}")'>Unban</button>`}
+                            </td>
+                        `;
+                        usersBody.appendChild(row);
+                    });
+                } else {
+                    usersBody.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                alert('Failed to load users');
+            }
+        }
+
+        // Add unban user function
+        window.unbanUser = async function(userId) {
+            if (confirm('Are you sure you want to unban this user?')) {
+                try {
+                    await update(ref(db, `users/${userId}`), {
+                        banned: false,
+                        banTimestamp: null
+                    });
+                    showNotification('User has been unbanned');
+                    fetchAndDisplayUsers(); // Refresh the user list
+                } catch (error) {
+                    console.error('Error unbanning user:', error);
+                    showNotification('Failed to unban user', true);
+                }
+            }
+        };
+
+        // Call fetchAndDisplayUsers initially
+        fetchAndDisplayUsers();
     </script>
 </head>
 <body style="font-family: 'Poppins', serif; margin: 0; padding: 0; line-height: 1.6; background-color: #FDF7F2; color: #333;">

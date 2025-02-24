@@ -13,6 +13,9 @@
             --text-color: #333;
             --primary-color: #111;
             --border-color: #eee;
+            --accent-color: #FF6B6B;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
         }
 
         body {
@@ -718,6 +721,279 @@
             font-size: 0.8rem;
             margin-top: 0.5rem;
         }
+
+        .level-info {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .level-header {
+            margin-bottom: 2rem;
+        }
+
+        .level-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .level-subtitle {
+            color: #666;
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+        }
+
+        .level-badge {
+            background: linear-gradient(90deg, #FF8A8A, #FFC947);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 10px rgba(255, 107, 107, 0.2);
+            position: absolute;
+            right: 2rem;
+            top: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .level-badge i {
+            font-size: 1.2rem;
+        }
+
+        .level-progress {
+            width: 100%;
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 1.5rem 0 1rem;
+            position: relative;
+        }
+
+        .level-progress .progress-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #FF8A8A, #FFC947);
+            border-radius: 20px;
+            transition: width 0.3s ease;
+        }
+
+        .level-stats {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .achievements-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .achievements-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .achievement-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #eee;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .achievement-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #FF8A8A, #FFC947);
+        }
+
+        .achievement-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #FF8A8A;
+            margin-bottom: 1rem;
+        }
+
+        .achievement-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .achievement-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 1rem;
+        }
+
+        .achievement-progress {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .achievement-progress .progress-bar {
+            margin-top: 0.5rem;
+            width: 100%;
+            height: 4px;
+            background: #f0f0f0;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .achievement-progress .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: var(--progress);
+            background: linear-gradient(90deg, #FF8A8A, #FFC947);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        .posts-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .posts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .posts-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .post-card .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .post-card .card-content {
+            padding: 1.5rem;
+        }
+
+        .post-card .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .post-card .card-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-card .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .post-card .stats-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .post-card .stats-row span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .post-card .stats-row i {
+            font-size: 1rem;
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -773,9 +1049,6 @@
             </div>
             
         <div class="tabs">
-            <div class="tab active" data-tab="articles">
-                <i class="fas fa-book"></i> My Articles
-            </div>
             <div class="tab" data-tab="drafts">
                 <i class="fas fa-file-alt"></i> My Drafts
             </div>
@@ -787,12 +1060,6 @@
             </div>
             <div class="tab" data-tab="settings">
                 <i class="fas fa-cog"></i> Settings
-            </div>
-                </div>
-                
-        <div class="section active" id="articles">
-            <div class="article-grid" id="articlesGrid">
-                <!-- Articles will be dynamically added here -->
             </div>
         </div>
 
@@ -998,6 +1265,41 @@
                 </div>
             </div>
         </div>
+
+        <div class="level-info">
+            <div class="level-header">
+                <h2 class="level-title">Level 1</h2>
+                <p class="level-subtitle">Beginner Blogger</p>
+            </div>
+            <div class="level-badge">Beginner Blogger</div>
+            <div class="level-progress">
+                <div class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div class="level-stats">
+                <span>0 / 1000 XP</span>
+                <span>Next Level: 2</span>
+            </div>
+        </div>
+
+        <div class="achievements-section">
+            <div class="achievements-header">
+                <h2 class="achievements-title">Achievements</h2>
+                <span>0/4 Unlocked</span>
+            </div>
+            <div class="achievements-grid">
+                <!-- Achievement cards will be added here dynamically -->
+            </div>
+        </div>
+
+        <div class="posts-section">
+            <div class="posts-header">
+                <h2 class="posts-title">Recent Posts</h2>
+                <button class="btn btn-primary">New Post</button>
+            </div>
+            <div class="posts-grid">
+                <!-- Posts will be dynamically added here -->
+            </div>
+        </div>
     </div>
 
     <script type="module">
@@ -1120,6 +1422,7 @@
         // Handle tab switching
         const tabs = document.querySelectorAll('.tab');
         const sections = document.querySelectorAll('.section');
+        const mainSections = document.querySelectorAll('.level-info, .achievements-section, .posts-section');
 
         tabs.forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1137,6 +1440,11 @@
                     }
                 });
 
+                // Hide main sections when viewing other tabs
+                mainSections.forEach(section => {
+                    section.style.display = target === 'articles' ? 'block' : 'none';
+                });
+
                 // Update URL hash
                 window.location.hash = target;
             });
@@ -1149,6 +1457,12 @@
             if (tab) {
                 tab.click();
             }
+            
+            // Show/hide main sections based on initial hash
+            const mainSections = document.querySelectorAll('.level-info, .achievements-section, .posts-section');
+            mainSections.forEach(section => {
+                section.style.display = hash === 'articles' ? 'block' : 'none';
+            });
         }
 
         window.addEventListener('hashchange', handleHash);
@@ -1158,7 +1472,7 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
-                    await loadDataFromFirebase(user);
+                    await loadUserProfile(user);
                     hideLoading();
                 } catch (error) {
                     console.error("Error loading profile:", error);
@@ -1170,318 +1484,373 @@
             }
         });
 
-        async function loadDataFromFirebase(user) {
-            const userRefProfile = databaseRef(db, 'users/' + user.uid);
-            const userSnapshotProfile = await get(userRefProfile);
+        async function loadUserProfile() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
 
-            if (userSnapshotProfile.exists()) {
-                const userData = userSnapshotProfile.val();
+                // Get user document
+                const userRef = databaseRef(db, 'users/' + user.uid);
+                const userSnapshot = await get(userRef);
+                
+                if (!userSnapshot.exists()) {
+                    showError('User profile not found');
+                    return;
+                }
 
-                // Update profile UI
-                document.getElementById('profileName').textContent = userData.displayName || 'Anonymous';
-                document.getElementById('profileEmail').textContent = userData.email;
-                document.getElementById('profileBio').textContent = userData.bio || 'A passionate writer and storyteller.';
-                document.getElementById('profileAvatar').src = userData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
+                const userData = userSnapshot.val();
 
-                // Load profile pictures history
-                const profilePicturesHistory = document.getElementById('profilePicturesHistory');
-                if (userData.profilePictures && userData.profilePictures.length > 0) {
-                    profilePicturesHistory.innerHTML = userData.profilePictures
-                        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                        .slice(0, 5) // Show last 5 pictures
-                        .map(pic => `
-                            <div class="history-item">
-                                <img src="${pic.url}" 
-                                     alt="Profile picture history" 
-                                     class="history-avatar" 
-                                     onclick="useHistoryPicture('${pic.url}')"
-                                     title="Click to use this picture">
-                                <div class="history-date">
-                                    ${new Date(pic.timestamp).toLocaleDateString()}
-                                </div>
-                            </div>
-                        `).join('');
-                } else {
-                    profilePicturesHistory.style.display = 'none';
+                // Helper function to update element text content
+                function updateElement(id, value) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = value;
+                    }
+                }
+
+                // Helper function to update element display
+                function updateDisplay(id, display) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.display = display;
+                    }
+                }
+
+                // Update profile info
+                updateElement('profileName', userData.displayName || 'Anonymous');
+                updateElement('profileEmail', userData.email);
+                updateElement('profileBio', userData.bio || 'A passionate writer and storyteller.');
+
+                const profileAvatar = document.getElementById('profileAvatar');
+                if (profileAvatar) {
+                    profileAvatar.src = userData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.uid}`;
+                }
+
+                // Show verification badge if applicable
+                if (userData.verified) {
+                    updateDisplay('verifiedBadge', 'inline');
                 }
 
                 // Update stats
-                document.getElementById('articlesCount').textContent = userData.totalPosts || 0;
-                document.getElementById('viewsCount').textContent = userData.totalViews || 0;
-                document.getElementById('likesCount').textContent = userData.totalLikes || 0;
-                document.getElementById('commentsCount').textContent = userData.totalComments || 0;
+                updateElement('articlesCount', userData.posts || 0);
+                updateElement('viewsCount', userData.totalViews || 0);
+                updateElement('likesCount', userData.totalLikes || 0);
+                updateElement('commentsCount', userData.totalComments || 0);
 
-                // Show verified badge if applicable
-                if (userData.verified) {
-                    document.getElementById('verifiedBadge').style.display = 'inline-flex';
-                }
-
-                // Show pro features if applicable
                 if (userData.isPro) {
-                    document.getElementById('profileViewsStat').style.display = 'block';
-                    document.getElementById('profileViewsCount').textContent = userData.profileViews?.length || 0;
-                    document.getElementById('profileViewersCard').style.display = 'block';
+                    updateDisplay('profileViewsStat', 'block');
+                    updateElement('profileViewsCount', Object.keys(userData.profileViews || {}).length);
                 }
 
-                // Populate form fields
-                document.getElementById('name').value = userData.displayName || '';
-                document.getElementById('username').value = userData.username || '';
-                document.getElementById('bio').value = userData.bio || '';
-                document.getElementById('location').value = userData.location || '';
-                document.getElementById('website').value = userData.website || '';
-                document.getElementById('occupation').value = userData.occupation || '';
-                document.getElementById('interests').value = userData.interests?.join(', ') || '';
-                document.getElementById('email').value = userData.email || '';
-
-                // Populate social media fields
-                if (userData.social) {
-                    document.getElementById('instagram').value = userData.social.instagram || '';
-                    document.getElementById('twitter').value = userData.social.twitter || '';
-                    document.getElementById('linkedin').value = userData.social.linkedin || '';
-                    document.getElementById('github').value = userData.social.github || '';
+                // Load user level and experience
+                const level = userData.level || 1;
+                const experience = userData.experience || 0;
+                const maxXp = 1000; // Fixed 1000 XP per level
+                const currentLevelXp = experience % maxXp;
+                const nextLevel = level + 1;
+                
+                const levelTitle = document.querySelector('.level-title');
+                if (levelTitle) {
+                    levelTitle.textContent = `Level ${level}`;
                 }
 
-                // Set privacy checkboxes
-                if (userData.privacy) {
-                    document.getElementById('showEmail').checked = userData.privacy.showEmail || false;
-                    document.getElementById('showLocation').checked = userData.privacy.showLocation || false;
+                const levelSubtitle = document.querySelector('.level-subtitle');
+                if (levelSubtitle) {
+                    levelSubtitle.textContent = level >= 10 ? 'Master Blogger' : level >= 5 ? 'Expert Blogger' : 'Beginner Blogger';
                 }
 
-                // Set avatar preview
-                if (userData.photoURL) {
-                    const defaultAvatar = document.getElementById('defaultAvatar');
-                    const avatarPreview = document.getElementById('avatarPreview');
-                    defaultAvatar.style.display = 'none';
-                    avatarPreview.style.display = 'block';
-                    avatarPreview.src = userData.photoURL;
-                } else {
-                    avatarPreview.style.display = 'none';
-                    defaultAvatar.style.display = 'flex';
-                }
-
-                // Load user's articles
-                try {
-                    // Get all posts
-                    const postsRef = databaseRef(db, "posts");
-                    const snapshot = await get(postsRef);
-                    const articlesGrid = document.getElementById('articlesGrid');
-
-                    if (!snapshot.exists()) {
-                        articlesGrid.innerHTML = `
-                            <div style="text-align: center; padding: 2rem;">
-                                <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                                <p style="color: #666;">No articles yet</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    // Filter and sort posts for the current user
-                    const articles = [];
-                    snapshot.forEach(child => {
-                        const post = child.val();
-                        if (post.authorId === user.uid) {
-                            articles.push({ id: child.key, data: post });
-                        }
-                    });
-
-                    if (articles.length === 0) {
-                        articlesGrid.innerHTML = `
-                            <div style="text-align: center; padding: 2rem;">
-                                <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                                <p style="color: #666;">No articles yet</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    // Sort articles by timestamp descending
-                    articles.sort((a, b) => new Date(b.data.timestamp) - new Date(a.data.timestamp));
-
-                    // Display articles
-                    articlesGrid.innerHTML = '';
-                    articles.forEach(article => {
-                        const card = createArticleCard(article.id, article.data);
-                        articlesGrid.appendChild(card);
-                    });
-                } catch (error) {
-                    console.error('Error loading articles:', error);
-                    const articlesGrid = document.getElementById('articlesGrid');
-                    articlesGrid.innerHTML = `
-                        <div style="text-align: center; padding: 2rem;">
-                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
-                            <p style="color: #666;">Error loading articles. Please try again later.</p>
-                        </div>
+                const levelBadge = document.querySelector('.level-badge');
+                if (levelBadge) {
+                    levelBadge.innerHTML = `
+                        <i class="fas fa-crown" style="color: ${level >= 10 ? '#FFD700' : level >= 5 ? '#FFA500' : '#C0C0C0'};"></i>
+                        ${level >= 10 ? 'Master Blogger' : level >= 5 ? 'Expert Blogger' : 'Beginner Blogger'}
                     `;
                 }
-            } else {
-                console.error('User profile does not exist.');
-            }
-        }
+                
+                const progressBar = document.querySelector('.level-progress .progress-bar');
+                if (progressBar) {
+                    const progressPercentage = (currentLevelXp / maxXp) * 100;
+                    progressBar.style.width = `${progressPercentage}%`;
+                }
+                
+                const levelStats = document.querySelector('.level-stats');
+                if (levelStats) {
+                    levelStats.innerHTML = `
+                        <span>${currentLevelXp} / ${maxXp} XP</span>
+                        <span>Next Level: ${nextLevel}</span>
+                    `;
+                }
 
-        // Helper function to create article card
-        function createArticleCard(id, article) {
-            const card = document.createElement('div');
-            card.className = 'article-card';
-            card.onclick = () => window.location.href = `read.html?id=${id}`;
+                // Load achievements
+                const achievementsGrid = document.querySelector('.achievements-grid');
+                if (achievementsGrid) {
+                    achievementsGrid.innerHTML = '';
+                    
+                    const achievements = [
+                        {
+                            id: 'first_post',
+                            title: 'First Steps',
+                            description: 'Published your first post',
+                            icon: 'fas fa-pen-fancy',
+                            current: userData.posts || 0,
+                            required: 1,
+                            xp: 100
+                        },
+                        {
+                            id: 'posts_10',
+                            title: 'Prolific Writer',
+                            description: 'Published 10 posts',
+                            icon: 'fas fa-book',
+                            current: userData.posts || 0,
+                            required: 10,
+                            xp: 200
+                        },
+                        {
+                            id: 'level_5',
+                            title: 'Rising Star',
+                            description: 'Reached Level 5',
+                            icon: 'fas fa-star',
+                            current: level || 1,
+                            required: 5,
+                            xp: 500
+                        },
+                        {
+                            id: 'level_10',
+                            title: 'Master Writer',
+                            description: 'Reached Level 10',
+                            icon: 'fas fa-crown',
+                            current: level || 1,
+                            required: 10,
+                            xp: 300
+                        }
+                    ];
 
-            const content = article.content || '';
-            const plainText = content.replace(/<[^>]*>/g, '');
-            const excerpt = plainText.substring(0, 150) + '...';
+                    let unlockedCount = 0;
+                    achievements.forEach(achievement => {
+                        const progress = Math.min((achievement.current / achievement.required) * 100, 100);
+                        if (progress >= 100) unlockedCount++;
+                        
+                        achievementsGrid.innerHTML += `
+                            <div class="achievement-card">
+                                <div class="achievement-icon">
+                                    <i class="${achievement.icon}" style="color: ${progress >= 100 ? '#FFC947' : '#FF8A8A'}"></i>
+                                </div>
+                                <h3 class="achievement-title">${achievement.title}</h3>
+                                <p class="achievement-description">${achievement.description}</p>
+                                <div class="achievement-progress">
+                                    ${achievement.current}/${achievement.required}
+                                    <div class="progress-bar" style="--progress: ${progress}%"></div>
+                                </div>
+                                <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
+                                    +${achievement.xp} XP
+                                </div>
+                            </div>
+                        `;
+                    });
 
-            card.innerHTML = `
+                    // Update achievements count
+                    const achievementsHeader = document.querySelector('.achievements-header span');
+                    if (achievementsHeader) {
+                        achievementsHeader.textContent = `${unlockedCount}/4 Unlocked`;
+                    }
+                }
+
+                // Load drafts
+                const draftsRef = databaseRef(db, 'drafts/' + user.uid);
+                const draftsSnapshot = await get(draftsRef);
+                const draftsGrid = document.getElementById('draftsGrid');
+                
+                if (draftsGrid) {
+                    draftsGrid.innerHTML = '';
+                    
+                    if (draftsSnapshot.exists()) {
+                        const drafts = [];
+                        draftsSnapshot.forEach((draft) => {
+                            drafts.push({ id: draft.key, ...draft.val() });
+                        });
+
+                        // Sort drafts by last modified date
+                        drafts.sort((a, b) => b.lastModified - a.lastModified);
+
+                        drafts.forEach(draft => {
+                            draftsGrid.innerHTML += `
+                                <div class="draft-card">
+                                    <img src="${draft.thumbnail || `https://picsum.photos/seed/${draft.id}/600/400`}" alt="Draft thumbnail" class="card-image">
                 <div class="card-content">
-                    <h3 class="card-title">${article.title || 'Untitled'}</h3>
-                    <p class="card-description">${excerpt}</p>
+                                        <h3 class="card-title">${draft.title || 'Untitled Draft'}</h3>
+                                        <p class="card-description">${draft.excerpt || draft.content?.substring(0, 100) || ''}...</p>
                     <div class="card-meta">
-                        <span>${article.timestamp ? new Date(article.timestamp.toDate()).toLocaleDateString() : 'No date'}</span>
-                        <div class="stats-row">
-                            <span><i class="fas fa-eye"></i> ${article.views || 0}</span>
-                            <span><i class="fas fa-heart"></i> ${article.likes?.length || 0}</span>
-                            <span><i class="fas fa-comment"></i> ${article.comments?.length || 0}</span>
+                                            <span>Last modified: ${new Date(draft.lastModified).toLocaleDateString()}</span>
+                                            <button class="btn btn-primary" onclick="editDraft('${draft.id}')">Continue Writing</button>
                         </div>
                     </div>
-                </div>
-            `;
+                        </div>
+                    `;
+                        });
+                    } else {
+                        draftsGrid.innerHTML = `
+                            <div style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #666;">
+                                No drafts yet
+                            </div>
+                        `;
+                    }
+                }
 
-            return card;
-        }
+                // Load user's posts
+                const postsRef = databaseRef(db, 'posts');
+                const postsSnapshot = await get(postsRef);
+                const postsGrid = document.querySelector('.posts-grid');
+                
+                if (postsGrid) {
+                    postsGrid.innerHTML = '';
+                    const posts = [];
+                    
+                    if (postsSnapshot.exists()) {
+                        postsSnapshot.forEach((post) => {
+                            const postData = post.val();
+                            if (postData.data && postData.data.author === user.uid) {
+                                posts.push({ 
+                                    id: post.key,
+                                    ...postData.data
+                                });
+                            }
+                        });
 
-        async function useHistoryPicture(url) {
-            if (confirm('Do you want to use this profile picture?')) {
-                loadingOverlay.style.display = 'flex';
-                try {
-                    const user = auth.currentUser;
-                    await updateProfile(user, { photoURL: url });
-                    await update(databaseRef(db, 'users/' + user.uid + '/profilePictures'), {
-                        url: url,
-                        timestamp: new Date().toISOString(),
-                        viewerId: user.uid,
-                        viewerName: user.displayName || 'Anonymous'
-                    });
-                    showToast('Profile picture updated successfully!', 'success');
-                    setTimeout(() => location.reload(), 1000);
+                        if (posts.length > 0) {
+                            // Sort posts by timestamp
+                            posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                            posts.forEach(post => {
+                                postsGrid.innerHTML += `
+                                    <div class="post-card" onclick="window.location.href='read.html?id=${post.id}'">
+                                        <img src="${post.thumbnail || `https://picsum.photos/seed/${post.id}/600/400`}" alt="Post thumbnail" class="card-image">
+                                        <div class="card-content">
+                                            <h3 class="card-title">${post.title || 'Untitled'}</h3>
+                                            <p class="card-description">${post.plainText?.substring(0, 100) || 'No content available'}...</p>
+                                            <div class="card-meta">
+                                                <span>${new Date(post.timestamp || Date.now()).toLocaleDateString()}</span>
+                                                <div class="stats-row">
+                                                    <span><i class="far fa-eye"></i> ${post.views || 0}</span>
+                                                    <span><i class="far fa-heart"></i> ${post.likes || 0}</span>
+                                                    <span><i class="far fa-comment"></i> ${post.comments?.length || 0}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            postsGrid.innerHTML = `
+                                <div style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #666;">
+                                    No posts yet. Start writing your first post!
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                // Load insights data
+                await loadInsights(user.uid);
+
                 } catch (error) {
-                    console.error('Error updating profile picture:', error);
-                    showToast('Error updating profile picture. Please try again.', 'error');
+                console.error('Error loading profile:', error);
+                showError('Failed to load profile data');
                 } finally {
+                if (loadingOverlay) {
                     loadingOverlay.style.display = 'none';
                 }
             }
         }
 
-        // Expose the useHistoryPicture function to the window object
-        window.useHistoryPicture = useHistoryPicture;
-
-        document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            loadingOverlay.style.display = 'flex';
-
+        async function loadInsights(userId) {
             try {
-                const user = auth.currentUser;
-                const newName = document.getElementById('name').value.trim();
-                const newUsername = document.getElementById('username').value.trim();
-                const newBio = document.getElementById('bio').value.trim();
-                const newLocation = document.getElementById('location').value.trim();
-                const newWebsite = document.getElementById('website').value.trim();
-                const newOccupation = document.getElementById('occupation').value.trim();
-                const newInterests = document.getElementById('interests').value.trim();
-                const avatarFile = document.getElementById('avatar').files[0];
-                const showEmail = document.getElementById('showEmail').checked;
-                const showLocation = document.getElementById('showLocation').checked;
+                const postsRef = databaseRef(db, 'posts');
+                const postsSnapshot = await get(postsRef);
+                
+                let totalViews = 0;
+                let totalLikes = 0;
+                let totalComments = 0;
+                let totalReadTime = 0;
+                const posts = [];
 
-                // Validate username
-                if (newUsername.length < 3) {
-                    throw new Error('Username must be at least 3 characters long');
-                }
-                if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
-                    throw new Error('Username can only contain letters, numbers, and underscores');
-                }
-
-                // Check if username is taken (if changed)
-                const userRefProfile = databaseRef(db, 'users/' + user.uid + '/username');
-                const currentUsername = await get(userRefProfile);
-                if (newUsername !== currentUsername.val()) {
-                    const usersRef = databaseRef(db, 'users');
-                    const q = query(usersRef, orderByChild('username'), equalTo(newUsername));
-                    const querySnapshot = await get(q);
-                    if (!querySnapshot.exists()) {
-                        // ... existing code ...
-                    }
-                }
-
-                // Validate website URL if provided
-                if (newWebsite && !isValidURL(newWebsite)) {
-                    throw new Error('Please enter a valid website URL');
-                }
-
-                let photoData = null;
-                if (avatarFile) {
-                    if (avatarFile.size > 5 * 1024 * 1024) {
-                        throw new Error('Image size should be less than 5MB');
-                    }
-                    photoData = await uploadToImgBB(avatarFile);
-                }
-
-                // Update auth profile
-                await updateProfile(user, {
-                    displayName: newName,
-                    photoURL: photoData ? photoData.url : user.photoURL
-                });
-
-                // Get reference to user document
-                const userRef = doc(db, "users", user.uid);
-
-                // Prepare update data
-                const updateData = {
-                    username: newUsername,
-                    displayName: newName,
-                    bio: newBio,
-                    location: newLocation,
-                    website: newWebsite,
-                    occupation: newOccupation,
-                    interests: newInterests ? newInterests.split(',').map(i => i.trim()).filter(i => i) : [],
-                    lastUpdated: serverTimestamp(),
-                    social: {
-                        instagram: document.getElementById('instagram').value.trim(),
-                        twitter: document.getElementById('twitter').value.trim(),
-                        linkedin: document.getElementById('linkedin').value.trim(),
-                        github: document.getElementById('github').value.trim()
-                    },
-                    privacy: {
-                        showEmail,
-                        showLocation
-                    }
-                };
-
-                if (photoData) {
-                    updateData.avatarUrl = photoData.url;
-                    updateData.profilePictures = arrayUnion({
-                        url: photoData.url,
-                        deleteUrl: photoData.deleteUrl,
-                        timestamp: Date.now()
+                if (postsSnapshot.exists()) {
+                    postsSnapshot.forEach((post) => {
+                        const postData = post.val();
+                        if (postData.authorId === userId) {
+                            totalViews += postData.views || 0;
+                            totalLikes += postData.likes?.length || 0;
+                            totalComments += postData.comments?.length || 0;
+                            totalReadTime += postData.readTime || 0;
+                            posts.push({ id: post.key, ...postData });
+                        }
                     });
                 }
 
-                // Update user document
-                await updateDoc(userRef, updateData);
+                // Helper function to update element text content
+                function updateElement(id, value) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = value;
+                    }
+                }
 
-                showToast('Profile updated successfully!', 'success');
-                setTimeout(() => location.reload(), 1000);
+                // Update insights stats
+                updateElement('totalViews', totalViews);
+                updateElement('totalReadTime', totalReadTime);
+                updateElement('totalLikes', totalLikes);
+                updateElement('totalComments', totalComments);
+                updateElement('interactionRate', 
+                    totalViews > 0 ? Math.round((totalLikes + totalComments) / totalViews * 100) + '%' : '0%'
+                );
+                updateElement('avgReadTime',
+                    posts.length > 0 ? Math.round(totalReadTime / posts.length) : 0
+                );
+
+                // Update popular articles
+                const popularArticles = document.getElementById('popularArticles');
+                if (popularArticles) {
+                    // Sort posts by views
+                    posts.sort((a, b) => (b.views || 0) - (a.views || 0));
+                    popularArticles.innerHTML = posts.length > 0 ? posts.slice(0, 5).map((post, index) => `
+                        <div class="popular-article-item">
+                            <div class="article-rank">#${index + 1}</div>
+                            <div class="article-info">
+                                <div class="article-title">${post.title}</div>
+                                <div class="article-stats">
+                                    <span><i class="fas fa-eye"></i> ${post.views || 0}</span>
+                                    <span><i class="fas fa-heart"></i> ${post.likes?.length || 0}</span>
+                                    <span><i class="fas fa-comment"></i> ${post.comments?.length || 0}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') : `
+                        <div style="text-align: center; padding: 2rem; color: #666;">
+                            No posts yet
+                        </div>
+                    `;
+                }
+
             } catch (error) {
-                console.error('Error updating profile:', error);
-                showToast(error.message || 'Error updating profile. Please try again.', 'error');
-            } finally {
-                loadingOverlay.style.display = 'none';
-            }
-        });
+                console.error('Error loading insights:', error);
+                // Show error state in insights
+                const elements = ['totalViews', 'totalReadTime', 'totalLikes', 'totalComments', 'interactionRate', 'avgReadTime'];
+                elements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = '-';
+                });
 
-        function isValidURL(url) {
-            try {
-                new URL(url);
-                return true;
-            } catch {
-                return false;
+                const popularArticles = document.getElementById('popularArticles');
+                if (popularArticles) {
+                    popularArticles.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: #666;">
+                            Error loading insights. Please try again later.
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -1529,6 +1898,11 @@
                 avatarPreview.src = '';
             }
         };
+
+        function showError(message) {
+            console.error(message);
+            showToast(message, 'error');
+        }
     </script>
 </body>
 </html>

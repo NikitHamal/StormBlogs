@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getDatabase, ref, get, update, child, increment } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getDatabase, ref, get, update, child, increment, push, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai@0.3.0";
 
@@ -29,6 +29,17 @@ const model = genAI.getGenerativeModel({
 let articleContext = '';
 let chatHistory = [];
 
+// Remove shimmer effect
+const loadingHTML = `<p>Loading...</p>`;
+
+// Constants for XP
+const INTERACTION_XP = {
+    LIKE: 5,
+    COMMENT: 10,
+    READ_TIME_PER_MINUTE: 1,
+    MAX_READ_TIME_XP: 30
+};
+
 // Make all functions globally available
 window.checkUserLike = async (articleId) => {
     if (!auth.currentUser) return false;
@@ -44,35 +55,58 @@ window.handleLike = async (articleId) => {
         return;
     }
 
+    // Check if user is verified
+    if (!auth.currentUser.emailVerified) {
+        alert('Please verify your email before interacting with this post.');
+        return;
+    }
+
     const articleRef = ref(db, `posts/${articleId}`);
     const userLikeRef = ref(db, `posts/${articleId}/likedBy/${auth.currentUser.uid}`);
     const snapshot = await get(userLikeRef);
     const hasLiked = snapshot.exists();
 
-    if (hasLiked) {
-        // Unlike
-        await update(articleRef, {
-            [`likedBy/${auth.currentUser.uid}`]: null,
-            likes: increment(-1)
-        });
-    } else {
-        // Like
-        await update(articleRef, {
-            [`likedBy/${auth.currentUser.uid}`]: true,
-            likes: increment(1)
-        });
-    }
+    try {
+        if (hasLiked) {
+            // Unlike
+            await update(articleRef, {
+                [`likedBy/${auth.currentUser.uid}`]: null,
+                'data/likes': increment(-1)
+            });
+        } else {
+            // Like and award XP
+            await update(articleRef, {
+                [`likedBy/${auth.currentUser.uid}`]: true,
+                'data/likes': increment(1)
+            });
 
-    // Update UI
-    const likeButton = document.getElementById('likeButton');
-    const likeCount = document.getElementById('likeCount');
-    if (likeButton) {
-        likeButton.classList.toggle('liked', !hasLiked);
-    }
-    if (likeCount) {
-        const articleSnapshot = await get(articleRef);
-        const likes = articleSnapshot.val()?.likes || 0;
-        likeCount.textContent = likes;
+            // Award XP to the post author
+            const articleSnapshot = await get(articleRef);
+            const authorId = articleSnapshot.val()?.data?.author;
+            if (authorId) {
+                await update(ref(db, `users/${authorId}`), {
+                    xp: increment(INTERACTION_XP.LIKE)
+                });
+            }
+        }
+
+        // Update UI
+        const likeButton = document.getElementById('likeButton');
+        const likeCount = document.getElementById('likeCount');
+        if (likeButton) {
+            likeButton.classList.toggle('liked', !hasLiked);
+        }
+        if (likeCount) {
+            const articleSnapshot = await get(articleRef);
+            const likes = articleSnapshot.val()?.data?.likes || 0;
+            likeCount.textContent = likes;
+        }
+
+        // Update post ranking
+        await updatePostRanking(articleId);
+    } catch (error) {
+        console.error('Error handling like:', error);
+        showNotification('Failed to update like', 'error');
     }
 };
 
@@ -83,6 +117,7 @@ window.handleChatInput = function (e) {
         sendMessage();
     }
 };
+
 // Add this helper function
 function truncateContext(text, maxLength = 30000) {
     return text.length > maxLength 
@@ -200,83 +235,110 @@ window.removeTypingIndicator = () => {
     }
 };
 
-// Add this function to handle Enter key submission
-window.handleChatInput = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-};
 // Fetch the post from Realtime Database
 const urlParams = new URLSearchParams(window.location.search);
 const postId = urlParams.get('id');
-console.log("Post ID from URL:", postId);
 
 async function loadPost() {
+    const articleContent = document.getElementById("article-content");
+    if (!articleContent) return;
+    
+    document.body.style.display = 'none';
+    articleContent.innerHTML = loadingHTML;
+
     if (!postId) {
-        console.error("No post ID provided");
-        document.getElementById("article-content").innerHTML = "<p>Article not found</p>";
+        articleContent.innerHTML = "<p>Article not found</p>";
+        return;
+    }
+
+    if (!navigator.onLine) {
+        articleContent.innerHTML = '<p>Client is offline. Please check your internet connection.</p>';
         return;
     }
 
     const articleRef = ref(db, `posts/${postId}`);
     try {
         const articleSnapshot = await get(articleRef);
+        document.body.style.display = 'block';
+
         if (articleSnapshot.exists()) {
             const post = articleSnapshot.val();
+            
+            // Fetch author details from correct path
+            const authorRef = ref(db, `users/${post.data.author}`);
+            const authorSnapshot = await get(authorRef);
+            const authorData = authorSnapshot.val() || {};
+            
+            // Check if current user is the author
+            const isAuthor = auth.currentUser && auth.currentUser.uid === post.data.author;
+            
+            articleContent.innerHTML = `
+                <p id="article-category" style="color:black; font-size:12px; font-weight:500; margin-bottom: 8px; background-color:#D7AFFF; border-radius:32px; padding:4px 16px; width:fit-content;"></p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h1 id="article-title" style="margin: 0;"></h1>
+                    ${isAuthor ? `
+                        <button onclick="editPost()" class="edit-button" style="background: #1a73e8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-edit"></i> Edit Post
+                        </button>
+                    ` : ''}
+                </div>
+                <article role="article" id="article-body" style="font-size:16px; font-weight:400; line-height: 2; white-space: pre-line; word-wrap: break-word;"></article>
+                <div style="display: flex; align-items: center; margin-top:32px;">
+                    <img src="${authorData.photoURL || 'https://i.pravatar.cc/150?u=default'}" alt="Profile" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; margin-right: 8px;">
+                    <span style="font-weight: 500; font-size: 18px; margin-right:12px;">${authorData.displayName || 'Anonymous'}</span>
+                    <i class="far fa-clock" style="margin-right: 5px;"></i>
+                    <span id="article-time" style="font-size:14px;"></span>
+                </div>
+            `;
 
-            // Update page content
-            document.getElementById("article-title").textContent = post.title;
-            document.getElementById("article-title-b").textContent = post.title;
-            document.getElementById("article-category").textContent = post.category;
-            document.getElementById("article-time").textContent = formatTimeAgo(Date.now() - post.timestamp);
+            const elements = {
+                title: document.getElementById("article-title"),
+                titleB: document.getElementById("article-title-b"),
+                category: document.getElementById("article-category"),
+                time: document.getElementById("article-time"),
+                body: document.getElementById("article-body")
+            };
 
-            // Display insights
-            document.getElementById("like-count").textContent = post.likes || 0;
-            document.getElementById("comment-count").textContent = post.comments ? post.comments.length : 0;
-            document.getElementById("view-count").textContent = post.views || 0; // Assuming views are tracked
+            if (elements.title) elements.title.textContent = post.data?.title || 'Untitled';
+            if (elements.titleB) elements.titleB.textContent = post.data?.title || 'Untitled';
+            if (elements.category) elements.category.textContent = post.data?.category || 'Uncategorized';
+            if (elements.time) elements.time.textContent = post.data?.timestamp ? formatTimeAgo(Date.now() - post.data.timestamp) : 'Unknown time';
+            if (elements.body) elements.body.innerHTML = post.data?.content || '<p>No content available</p>';
 
-            // Format content
-            const formattedContent = post.content
-                .split('\n')
-                .map(paragraph => paragraph.trim())
-                .filter(paragraph => paragraph.length > 0)
-                .map(paragraph => `<p style="margin-bottom: 1em;">${paragraph}</p>`)
-                .join('');
-
-            document.getElementById("article-body").innerHTML = formattedContent;
-
-            // Update like button state
             const likeButton = document.getElementById("likeButton");
-            if (auth.currentUser && post.likedBy && post.likedBy.includes(auth.currentUser.uid)) {
-                likeButton.querySelector('i').classList.remove('far');
-                likeButton.querySelector('i').classList.add('fas');
+            const likeCount = document.getElementById("likeCount");
+            if (likeCount) likeCount.textContent = post.data?.likes || 0;
+            
+            if (likeButton && auth.currentUser) {
+                const userLikeRef = ref(db, `posts/${postId}/likedBy/${auth.currentUser.uid}`);
+                const userLikeSnapshot = await get(userLikeRef);
+                if (userLikeSnapshot.exists()) {
+                    const icon = likeButton.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    }
+                }
             }
 
-            // Load comments
             await loadComments();
+            articleContext = `Title: ${post.data?.title}\n\nContent: ${post.data?.content}`;
 
-            // Update article context
-            articleContext = `Title: ${post.title}\n\nContent: ${post.content}`;
+            const profileImage = document.querySelector('img[alt="Profile"]');
+            if (profileImage && post.data?.authorPhotoURL) {
+                profileImage.src = post.data.authorPhotoURL;
+            }
 
-            const authorPhotoURL = post.authorPhotoURL || 'default_profile.jpg'; // Use Realtime Database URL
-            document.querySelector('img[alt="Profile"]').src = authorPhotoURL;
+            chatHistory = [
+                { role: "user", parts: [{ text: `ARTICLE CONTEXT: ${articleContext}` }] },
+                { role: "model", parts: [{ text: 'I have read the article. Ask me anything!' }] }
+            ];
+        } else {
+            articleContent.innerHTML = "<p>Article not found</p>";
         }
     } catch (error) {
-        console.error("Error loading post:", error);
-        document.getElementById("article-content").innerHTML = "<p>Error loading article</p>";
+        articleContent.innerHTML = "<p>Error loading article. Please try again later.</p>";
     }
-    // Initialize chat history
-    chatHistory = [
-        {
-            role: "user",
-            parts: [{ text: `ARTICLE CONTEXT: ${articleContext}` }]
-        },
-        {
-            role: "model",
-            parts: [{ text: 'I have read the article. Ask me anything!' }]
-        }
-    ];
 }
 
 document.addEventListener('dblclick', async (event) => {
@@ -334,7 +396,6 @@ let lastRequest = 0;
 document.addEventListener('dblclick', async (event) => {
     if (Date.now() - lastRequest < 2000) return;
     lastRequest = Date.now();
-    // ... rest of the code
 });
 
 // Keyboard shortcut support
@@ -352,13 +413,28 @@ document.addEventListener('click', (e) => {
     }
 });
 
-
 async function loadComments() {
     const articleRef = ref(db, `posts/${postId}/comments`);
     const commentsSnapshot = await get(articleRef);
-    const comments = commentsSnapshot.val() || [];
     
-    const commentsHtml = comments.map(comment => `
+    const commentsList = document.getElementById('comments-list');
+    const commentCount = document.getElementById('comment-count');
+    
+    if (!commentsList || !commentCount) return;
+
+    if (!commentsSnapshot.exists()) {
+        commentsList.innerHTML = '<p>No comments yet. Be the first to comment!</p>';
+        commentCount.textContent = '0';
+        return;
+    }
+    
+    const commentsData = commentsSnapshot.val();
+    const commentsArray = Object.entries(commentsData || {}).map(([key, value]) => ({
+        id: key,
+        ...value
+    })).sort((a, b) => b.timestamp - a.timestamp);
+    
+    const commentsHtml = commentsArray.map(comment => `
         <div style="background: #f8f8f8; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -372,39 +448,131 @@ async function loadComments() {
         </div>
     `).join('');
     
-    document.getElementById('comments-list').innerHTML = commentsHtml;
-    document.getElementById("comment-count").textContent = comments.length;
+    commentsList.innerHTML = commentsHtml;
+    commentCount.textContent = commentsArray.length;
 }
 
-// Modify comment submission
-document.getElementById('submit-comment').addEventListener('click', async () => {
+// Update comment submission
+document.getElementById('submit-comment')?.addEventListener('click', async () => {
     if (!auth.currentUser) {
         alert('Please login to comment');
         window.location.href = 'login.html';
         return;
     }
 
-    const comment = document.getElementById('comment-input').value;
+    if (!auth.currentUser.emailVerified) {
+        alert('Please verify your email before interacting with this post.');
+        return;
+    }
+
+    const commentInput = document.getElementById('comment-input');
+    const comment = commentInput.value;
     if (!comment.trim()) return;
     
     try {
-        const articleRef = ref(db, `posts/${postId}/comments`);
-        await update(articleRef, {
-            [Date.now()]: {
-                text: comment,
-                timestamp: Date.now(),
-                userId: auth.currentUser.uid,
-                userName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
-                userPhotoURL: auth.currentUser.photoURL
-            }
-        });
+        const commentData = {
+            text: comment,
+            timestamp: Date.now(),
+            userId: auth.currentUser.uid,
+            userName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
+            userPhotoURL: auth.currentUser.photoURL
+        };
+
+        const articleRef = ref(db, `posts/${postId}`);
+        const newCommentRef = push(ref(db, `posts/${postId}/comments`));
+        await set(newCommentRef, commentData);
         
-        document.getElementById('comment-input').value = '';
-        // Refresh comments immediately
+        // Award XP to the post author
+        const articleSnapshot = await get(articleRef);
+        const authorId = articleSnapshot.val()?.data?.author;
+        if (authorId) {
+            await update(ref(db, `users/${authorId}`), {
+                xp: increment(INTERACTION_XP.COMMENT)
+            });
+        }
+
+        // Update post ranking
+        await updatePostRanking(postId);
+        
+        commentInput.value = '';
         await loadComments();
     } catch (error) {
-        console.error("Error posting comment:", error);
         alert('Error posting comment. Please try again.');
+    }
+});
+
+// Function to update post ranking
+async function updatePostRanking(postId) {
+    try {
+        const articleRef = ref(db, `posts/${postId}`);
+        const snapshot = await get(articleRef);
+        const post = snapshot.val();
+
+        if (!post) return;
+
+        const rankingScore = calculatePostRanking({
+            timestamp: post.data.timestamp,
+            likes: post.data.likes || 0,
+            comments: post.data.comments || [],
+            views: post.data.views || 0
+        });
+
+        await update(articleRef, {
+            'data/ranking': rankingScore
+        });
+    } catch (error) {
+        console.error('Error updating post ranking:', error);
+    }
+}
+
+// Function to calculate post ranking score
+function calculatePostRanking(post) {
+    const now = Date.now();
+    const postAge = (now - post.timestamp) / (1000 * 60 * 60); // Hours
+    const likes = post.likes || 0;
+    const comments = (post.comments?.length || 0);
+    const views = post.views || 0;
+
+    return (likes * 3 + comments * 2 + views * 0.1) / Math.pow(postAge + 2, 1.5);
+}
+
+// Track reading time and award XP
+let readStartTime = Date.now();
+let hasAwardedReadXP = false;
+
+window.addEventListener('beforeunload', async () => {
+    if (hasAwardedReadXP || !auth.currentUser) return;
+
+    try {
+        const readTimeMinutes = Math.floor((Date.now() - readStartTime) / (1000 * 60));
+        if (readTimeMinutes < 1) return;
+
+        const articleRef = ref(db, `posts/${postId}`);
+        const snapshot = await get(articleRef);
+        const authorId = snapshot.val()?.data?.author;
+
+        if (authorId) {
+            const xpToAward = Math.min(
+                readTimeMinutes * INTERACTION_XP.READ_TIME_PER_MINUTE,
+                INTERACTION_XP.MAX_READ_TIME_XP
+            );
+
+            await update(ref(db, `users/${authorId}`), {
+                xp: increment(xpToAward)
+            });
+
+            // Record read time
+            await update(articleRef, {
+                [`readTimeHistory/${auth.currentUser.uid}`]: {
+                    timestamp: Date.now(),
+                    duration: readTimeMinutes
+                }
+            });
+
+            hasAwardedReadXP = true;
+        }
+    } catch (error) {
+        console.error('Error awarding read time XP:', error);
     }
 });
 
@@ -429,49 +597,6 @@ function formatTimeAgo(milliseconds) {
     if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
     if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''}`;
     return `${seconds} second${seconds > 1 ? 's' : ''}`;
-}
-
-function renderArticle(data) {
-    // Set category
-    document.getElementById('articleCategory').textContent = data.category || '';
-    
-    // Set title
-    document.getElementById('articleTitle').textContent = data.title;
-    
-    // Set author and date
-    document.getElementById('authorName').textContent = data.authorName || 'Anonymous';
-    document.getElementById('publishDate').textContent = new Date(data.timestamp.toDate()).toLocaleDateString();
-    
-    // Set content
-    const contentDiv = document.getElementById('articleContent');
-    contentDiv.innerHTML = data.content;
-
-    // Render tags
-    const tagsContainer = document.getElementById('articleTags');
-    tagsContainer.innerHTML = '';
-    if (data.themes && data.themes.length > 0) {
-        data.themes.forEach(theme => {
-            const tag = document.createElement('div');
-            tag.className = 'tag';
-            tag.textContent = theme;
-            tagsContainer.appendChild(tag);
-        });
-    }
-
-    // Set like count
-    const likeCount = document.getElementById('likeCount');
-    likeCount.textContent = data.likes ? data.likes.length : 0;
-
-    // Set comment count
-    const commentCount = document.getElementById('commentCount');
-    commentCount.textContent = data.comments ? data.comments.length : 0;
-
-    // Update like button state
-    const likeButton = document.getElementById('likeButton');
-    if (auth.currentUser && data.likes && data.likes.includes(auth.currentUser.uid)) {
-        likeButton.querySelector('i').classList.remove('far');
-        likeButton.querySelector('i').classList.add('fas');
-    }
 }
 
 // Initialize when auth state changes
@@ -526,7 +651,7 @@ function updateReadTime() {
     if (startTime && isVisible) {
         const currentTime = Date.now();
         const sessionTime = (currentTime - startTime) / 1000;
-        totalReadTime = sessionTime;
+        totalReadTime += sessionTime;
     }
 }
 
@@ -624,3 +749,53 @@ setInterval(() => {
         saveReadingTime();
     }
 }, 60000); // Save every minute 
+
+// Add shimmer effect in CSS
+const style = document.createElement('style');
+style.innerHTML = `
+.shimmer {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 25%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0.1) 75%);
+    background-size: 400% 100%;
+    animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 0%; }
+}`; 
+document.head.appendChild(style); 
+
+// Add edit post functionality
+window.editPost = async () => {
+    if (!auth.currentUser) return;
+    
+    try {
+        const articleRef = ref(db, `posts/${postId}`);
+        const snapshot = await get(articleRef);
+        const post = snapshot.val();
+        
+        if (post.data.author !== auth.currentUser.uid) {
+            alert('You do not have permission to edit this post');
+            return;
+        }
+        
+        // Store post data in localStorage for the write page
+        localStorage.setItem('editingPost', JSON.stringify({
+            postId,
+            title: post.data.title,
+            content: post.data.content,
+            category: post.data.category,
+            themes: post.data.themes || [],
+            thumbnail: post.data.thumbnail,
+            tags: post.data.tags || [],
+            seo: post.data.seo || {}
+        }));
+        
+        // Redirect to write page
+        window.location.href = 'write.html?edit=' + postId;
+    } catch (error) {
+        console.error('Error preparing post for edit:', error);
+        alert('Failed to load post for editing');
+    }
+}; 

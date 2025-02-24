@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievements - StormBlogs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6200EA;
+            --secondary-color: #B388FF;
+            --background-color: #1A1A2E;
+            --card-bg: #1F1F3D;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B0B0B0;
+            --accent-color: #7C4DFF;
+            --success-color: #00E676;
+            --progress-bg: #2D2D4A;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--accent-color);
+            box-shadow: 0 0 20px rgba(124, 77, 255, 0.3);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+        }
+
+        .level-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .level-badge {
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .xp-progress {
+            flex: 1;
+            height: 8px;
+            background: var(--progress-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .xp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .xp-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            margin: 10px 0;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .achievements-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .achievement-card {
+            background: var(--progress-bg);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .achievement-card.locked {
+            opacity: 0.7;
+            filter: grayscale(1);
+        }
+
+        .achievement-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--accent-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-title {
+            font-weight: 600;
+            margin: 0 0 5px 0;
+        }
+
+        .achievement-description {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin: 0;
+        }
+
+        .achievement-xp {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: var(--success-color);
+        }
+
+        .achievement-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .profile-section {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .level-info {
+                flex-direction: column;
+            }
+
+            .xp-progress {
+                width: 100%;
+            }
+        }
+
+        /* Animation for unlocked achievements */
+        @keyframes unlock {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .achievement-card.just-unlocked {
+            animation: unlock 0.5s ease;
+            background: linear-gradient(45deg, var(--card-bg), var(--accent-color));
+        }
+
+        /* Shimmer effect for locked achievements */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .achievement-card.locked::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-section">
+            <img id="profileAvatar" src="" alt="Profile" class="profile-avatar">
+            <div class="profile-info">
+                <h1 id="profileName" class="profile-name">Loading...</h1>
+                <div class="level-info">
+                    <div class="level-badge">Level <span id="userLevel">0</span></div>
+                    <div class="xp-progress">
+                        <div id="xpBar" class="xp-bar" style="width: 0%"></div>
+                    </div>
+                    <span class="xp-text"><span id="currentXP">0</span>/<span id="nextLevelXP">100</span> XP</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-scroll fa-2x" style="color: var(--accent-color)"></i>
+                <div id="totalPosts" class="stat-value">0</div>
+                <div class="stat-label">Total Posts</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-heart fa-2x" style="color: var(--accent-color)"></i>
+                <div id="totalLikes" class="stat-value">0</div>
+                <div class="stat-label">Total Likes</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-comment fa-2x" style="color: var(--accent-color)"></i>
+                <div id="totalComments" class="stat-value">0</div>
+                <div class="stat-label">Total Comments</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-eye fa-2x" style="color: var(--accent-color)"></i>
+                <div id="totalViews" class="stat-value">0</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+        </div>
+
+        <div class="achievements-section">
+            <h2 class="section-title">
+                <i class="fas fa-trophy" style="color: var(--accent-color)"></i>
+                Achievements
+            </h2>
+            <div id="achievementsGrid" class="achievements-grid">
+                <!-- Achievements will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-auth.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.8.4/firebase-database.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnuHbSv6BniMyf3ltSZTSrIFa_92bHB-o",
+            authDomain: "storm-blogs.firebaseapp.com",
+            databaseURL: "https://storm-blogs-default-rtdb.firebaseio.com",
+            projectId: "storm-blogs",
+            storageBucket: "storm-blogs.firebasestorage.app",
+            messagingSenderId: "158567556221",
+            appId: "1:158567556221:web:855dfa074fc5b65e68fd14"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getDatabase();
+
+        // Level thresholds
+        const LEVEL_THRESHOLDS = [
+            0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500
+        ];
+
+        // Achievements data
+        const ACHIEVEMENTS = {
+            FIRST_POST: {
+                id: 'first_post',
+                title: 'First Steps',
+                description: 'Published your first post',
+                xp: 100,
+                icon: '📝',
+                condition: (stats) => stats.totalPosts >= 1
+            },
+            LEVEL_5: {
+                id: 'level_5',
+                title: 'Rising Star',
+                description: 'Reached Level 5',
+                xp: 200,
+                icon: '⭐',
+                condition: (stats) => stats.level >= 5
+            },
+            LEVEL_10: {
+                id: 'level_10',
+                title: 'Master Writer',
+                description: 'Reached Level 10',
+                xp: 500,
+                icon: '👑',
+                condition: (stats) => stats.level >= 10
+            },
+            POSTS_10: {
+                id: 'posts_10',
+                title: 'Prolific Writer',
+                description: 'Published 10 posts',
+                xp: 300,
+                icon: '✍️',
+                condition: (stats) => stats.totalPosts >= 10
+            },
+            LONG_POST: {
+                id: 'long_post',
+                title: 'Novelist',
+                description: 'Published a post with over 2000 words',
+                xp: 200,
+                icon: '📚',
+                condition: (stats) => stats.hasLongPost
+            },
+            LIKES_50: {
+                id: 'likes_50',
+                title: 'Crowd Favorite',
+                description: 'Received 50 total likes',
+                xp: 150,
+                icon: '❤️',
+                condition: (stats) => stats.totalLikes >= 50
+            },
+            COMMENTS_25: {
+                id: 'comments_25',
+                title: 'Conversation Starter',
+                description: 'Received 25 comments on your posts',
+                xp: 150,
+                icon: '💬',
+                condition: (stats) => stats.totalComments >= 25
+            },
+            VIEWS_1000: {
+                id: 'views_1000',
+                title: 'Rising Influencer',
+                description: 'Reached 1,000 total views',
+                xp: 300,
+                icon: '👀',
+                condition: (stats) => stats.totalViews >= 1000
+            }
+        };
+
+        // Calculate level from XP
+        function calculateLevel(xp) {
+            let level = 1;
+            for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+                if (xp >= LEVEL_THRESHOLDS[i]) {
+                    level = i + 1;
+                } else {
+                    break;
+                }
+            }
+            return level;
+        }
+
+        // Calculate XP progress
+        function calculateXPProgress(xp) {
+            const level = calculateLevel(xp);
+            const currentLevelXP = LEVEL_THRESHOLDS[level - 1];
+            const nextLevelXP = LEVEL_THRESHOLDS[level] || LEVEL_THRESHOLDS[level - 1];
+            const progress = ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100;
+            return {
+                progress: Math.min(progress, 100),
+                currentLevelXP,
+                nextLevelXP
+            };
+        }
+
+        // Load user data
+        async function loadUserData(userId) {
+            try {
+                const userRef = ref(db, `users/${userId}`);
+                const snapshot = await get(userRef);
+                const userData = snapshot.val() || {};
+
+                // Update profile section
+                document.getElementById('profileAvatar').src = userData.photoURL || 'https://i.pravatar.cc/150?u=default';
+                document.getElementById('profileName').textContent = userData.displayName || 'Anonymous';
+
+                // Calculate level and XP
+                const xp = userData.xp || 0;
+                const level = calculateLevel(xp);
+                const xpProgress = calculateXPProgress(xp);
+
+                document.getElementById('userLevel').textContent = level;
+                document.getElementById('xpBar').style.width = `${xpProgress.progress}%`;
+                document.getElementById('currentXP').textContent = xp - xpProgress.currentLevelXP;
+                document.getElementById('nextLevelXP').textContent = xpProgress.nextLevelXP - xpProgress.currentLevelXP;
+
+                // Update stats
+                document.getElementById('totalPosts').textContent = userData.stats?.totalPosts || 0;
+                document.getElementById('totalLikes').textContent = userData.stats?.totalLikes || 0;
+                document.getElementById('totalComments').textContent = userData.stats?.totalComments || 0;
+                document.getElementById('totalViews').textContent = userData.stats?.totalViews || 0;
+
+                // Load achievements
+                loadAchievements(userData);
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        // Load achievements
+        function loadAchievements(userData) {
+            const achievementsGrid = document.getElementById('achievementsGrid');
+            achievementsGrid.innerHTML = '';
+
+            const stats = {
+                level: calculateLevel(userData.xp || 0),
+                totalPosts: userData.stats?.totalPosts || 0,
+                totalLikes: userData.stats?.totalLikes || 0,
+                totalComments: userData.stats?.totalComments || 0,
+                totalViews: userData.stats?.totalViews || 0,
+                hasLongPost: userData.stats?.hasLongPost || false
+            };
+
+            Object.values(ACHIEVEMENTS).forEach(achievement => {
+                const isUnlocked = achievement.condition(stats);
+                const card = document.createElement('div');
+                card.className = `achievement-card ${isUnlocked ? '' : 'locked'}`;
+                card.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-info">
+                        <h3 class="achievement-title">${achievement.title}</h3>
+                        <p class="achievement-description">${achievement.description}</p>
+                    </div>
+                    <div class="achievement-xp">+${achievement.xp} XP</div>
+                    ${isUnlocked ? '<div class="achievement-progress" style="width: 100%"></div>' : ''}
+                `;
+                achievementsGrid.appendChild(card);
+            });
+        }
+
+        // Initialize when auth state changes
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loadUserData(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html> 

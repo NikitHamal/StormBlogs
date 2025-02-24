@@ -412,6 +412,67 @@
             margin-bottom: 1rem;
             display: none;
         }
+
+        .interests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .interest-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .interest-item:hover {
+            background: #e9e9e9;
+        }
+
+        .interest-item input[type="checkbox"] {
+            margin: 0;
+        }
+
+        .default-avatars {
+            display: flex;
+            overflow-x: auto;
+            padding: 10px 0;
+            gap: 10px;
+        }
+
+        .avatar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .avatar-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .avatar-item input[type="radio"] {
+            display: none;
+        }
+
+        .avatar-item input[type="radio"]:checked + img {
+            border-color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -454,6 +515,48 @@
                 </div>
                 <div class="avatar-requirements">
                     Recommended: Square image, max 5MB
+                </div>
+                <div class="default-avatars">
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Avatar 1">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" alt="Avatar 2">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie" alt="Avatar 3">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Max" alt="Avatar 4">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Luna" alt="Avatar 5">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver" alt="Avatar 6">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mia" alt="Avatar 7">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Leo" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Leo" alt="Avatar 8">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Chester" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chester" alt="Avatar 9">
+                    </label>
+                    <label class="avatar-item">
+                        <input type="radio" name="defaultAvatar" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Jasper" onchange="selectDefaultAvatar(this)">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jasper" alt="Avatar 10">
+                    </label>
                 </div>
             </div>
 
@@ -505,13 +608,108 @@
             </div>
 
             <div class="form-group">
-                <label for="interests">Interests</label>
-                <input type="text" id="interests" placeholder="Comma-separated list of interests">
+                <label>Select Your Interests</label>
+                <div class="interests-grid">
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Philosophy">
+                        Philosophy
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Literature">
+                        Literature
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Poetry">
+                        Poetry
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Existentialism">
+                        Existentialism
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Romanticism">
+                        Romanticism
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Modernism">
+                        Modernism
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Postmodernism">
+                        Postmodernism
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Literary Criticism">
+                        Literary Criticism
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Creative Writing">
+                        Creative Writing
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Classic Literature">
+                        Classic Literature
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Philosophical Literature">
+                        Philosophical Literature
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Fiction">
+                        Fiction
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Non-Fiction">
+                        Non-Fiction
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Drama">
+                        Drama
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Short Stories">
+                        Short Stories
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Literary Theory">
+                        Literary Theory
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Anthology">
+                        Anthology
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Literary Genres">
+                        Literary Genres
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Philosophical Movements">
+                        Philosophical Movements
+                    </label>
+                    <label class="interest-item">
+                        <input type="checkbox" name="interests" value="Cultural Studies">
+                        Cultural Studies
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="interests">Additional Interests</label>
+                <input type="text" id="interests" placeholder="Add more interests (comma-separated)">
             </div>
 
             <div class="form-group">
                 <label for="dob">Date of Birth *</label>
                 <input type="date" id="dob" required>
+            </div>
+
+            <div class="form-group">
+                <label for="level">Level</label>
+                <input type="number" id="level" value="1" readonly style="display:none;">
+            </div>
+            <div class="form-group">
+                <label for="experience">Experience Points</label>
+                <input type="number" id="experience" value="0" readonly style="display:none;">
             </div>
 
             <div class="form-group">
@@ -561,7 +759,8 @@
         import { 
             getAuth, 
             createUserWithEmailAndPassword,
-            updateProfile 
+            updateProfile,
+            sendEmailVerification
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { 
             getDatabase,
@@ -650,18 +849,29 @@
                 const location = document.getElementById('location').value.trim();
                 const website = document.getElementById('website').value.trim();
                 const occupation = document.getElementById('occupation').value.trim();
-                const interests = document.getElementById('interests').value.trim();
                 const dob = document.getElementById('dob').value;
                 const avatarFile = document.getElementById('avatar').files[0];
+                const selectedDefaultAvatar = document.querySelector('input[name="defaultAvatar"]:checked')?.value;
+
+                // Get selected interests
+                const selectedInterests = Array.from(document.querySelectorAll('input[name="interests"]:checked'))
+                    .map(cb => cb.value);
+                const additionalInterests = document.getElementById('interests').value
+                    .split(',')
+                    .map(i => i.trim())
+                    .filter(i => i);
+                const allInterests = [...new Set([...selectedInterests, ...additionalInterests])];
 
                 // Create auth account
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // Upload avatar if provided
+                // Handle avatar (uploaded or default)
                 let avatarUrl = null;
                 if (avatarFile) {
                     avatarUrl = await uploadToImgBB(avatarFile);
+                } else if (selectedDefaultAvatar) {
+                    avatarUrl = selectedDefaultAvatar;
                 }
 
                 // Update auth profile
@@ -669,6 +879,9 @@
                     displayName: displayName,
                     photoURL: avatarUrl
                 });
+
+                // Send verification email
+                await sendEmailVerification(user);
 
                 // Save additional user data
                 await set(ref(db, `users/${user.uid}/`), {
@@ -682,9 +895,10 @@
                     location: location || null,
                     website: website || null,
                     occupation: occupation || null,
-                    interests: interests ? 
-                        interests.split(',').map(i => i.trim()).filter(i => i) : [],
+                    interests: allInterests,
                     dob: dob || null,
+                    level: 1,
+                    experience: 0,
                     social: {
                         instagram: document.getElementById('instagram').value.trim() || null,
                         twitter: document.getElementById('twitter').value.trim() || null,
@@ -704,7 +918,7 @@
                         url: avatarUrl,
                         timestamp: new Date().toISOString()
                     }] : [],
-                    restricted: false,
+                    restricted: true,
                     verified: false,
                     totalViews: 0,
                     totalLikes: 0,
@@ -713,7 +927,7 @@
 
                 showToast('Account created successfully!', 'success');
                 setTimeout(() => {
-                    window.location.href = 'profile.html';
+                    window.location.href = 'verification.html';
                 }, 1500);
 
             } catch (error) {
@@ -1025,6 +1239,13 @@
                 validateForm();
             });
         });
+
+        function selectDefaultAvatar(radio) {
+            const avatarPreview = document.getElementById('avatarPreview');
+            avatarPreview.src = radio.value;
+            avatarPreview.style.display = 'block';
+            document.getElementById('defaultAvatar').style.display = 'none';
+        }
     </script>
 </body>
 </html> 

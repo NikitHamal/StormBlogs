@@ -13,6 +13,8 @@
             --text-color: #333;
             --primary-color: #111;
             --border-color: #eee;
+            --accent-color: #FF6B6B;
+            --success-color: #4CAF50;
         }
 
         body {
@@ -114,7 +116,7 @@
             text-align: center;
         }
 
-        .meta-value {
+        .meta-number {
             font-size: 1.2rem;
             font-weight: 600;
             color: var(--primary-color);
@@ -334,6 +336,188 @@
             margin-top: 0.5rem;
         }
 
+        .level-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .level-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .level-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .level-progress {
+            width: 100%;
+            height: 12px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            width: 75%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), #FF9F43);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .level-stats {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .achievement-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        .achievement-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .achievement-description {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .achievement-progress {
+            font-size: 0.8rem;
+            color: var(--success-color);
+        }
+
+        .posts-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .posts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .posts-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .post-card .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .post-card .card-content {
+            padding: 1.5rem;
+        }
+
+        .post-card .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .post-card .card-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 0 0 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .post-card .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .post-card .stats-row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .post-card .stats-row span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .post-card .stats-row i {
+            font-size: 1rem;
+            color: var(--accent-color);
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -364,6 +548,10 @@
                 width: 120px;
                 height: 120px;
                 margin-top: -60px;
+            }
+
+            .posts-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -399,23 +587,23 @@
                 
                 <div class="profile-meta">
                     <div class="meta-item">
-                        <div class="meta-value" id="postsCount">0</div>
+                        <div class="meta-number" id="postsCount">0</div>
                         <div class="meta-label">Posts</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-value" id="followersCount">0</div>
+                        <div class="meta-number" id="followersCount">0</div>
                         <div class="meta-label">Followers</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-value" id="followingCount">0</div>
+                        <div class="meta-number" id="followingCount">0</div>
                         <div class="meta-label">Following</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-value" id="totalLikes">0</div>
+                        <div class="meta-number" id="totalLikes">0</div>
                         <div class="meta-label">Likes</div>
                     </div>
                     <div class="meta-item">
-                        <div class="meta-value" id="totalViews">0</div>
+                        <div class="meta-number" id="totalViews">0</div>
                         <div class="meta-label">Views</div>
                     </div>
                 </div>
@@ -485,19 +673,40 @@
             </div>
         </div>
 
-        <div class="content-section">
-            <div class="articles-section">
-                <h2 class="section-title">Latest Articles</h2>
-                <div id="articlesContainer">
-                    <!-- Articles will be added here -->
+        <div class="level-section">
+            <div class="level-header">
+                <div class="level-title">Level 15</div>
+                <div class="level-badge">
+                    <i class="fas fa-crown" style="color: gold;"></i>
+                    Expert Blogger
+                </div>
+            </div>
+            <div class="level-progress">
+                <div class="progress-bar"></div>
+            </div>
+            <div class="level-stats">
+                <span>7,500 / 10,000 XP</span>
+                <span>Next Level: 16</span>
                 </div>
             </div>
 
-            <div class="sidebar-section">
-                <h2 class="section-title">Activity Overview</h2>
-                <div class="chart-container">
-                    <canvas id="activityChart"></canvas>
+        <div class="achievements-section">
+            <div class="achievements-header">
+                <h2 class="achievements-title">Achievements</h2>
+                <span>0/4 Unlocked</span>
                 </div>
+            <div class="achievements-grid">
+                <!-- Achievements will be added here dynamically -->
+            </div>
+        </div>
+
+        <h2 class="section-title" style="margin-top: 2rem;">Recent Posts</h2>
+        <div class="posts-section">
+            <div class="posts-header">
+                <h2 class="posts-title">Recent Posts</h2>
+            </div>
+            <div class="posts-grid">
+                <!-- Posts will be dynamically added here -->
             </div>
         </div>
     </div>
@@ -505,7 +714,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, get, set, update, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, get, set, update, child, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // Firebase configuration
         const firebaseConfig = {
@@ -522,13 +731,6 @@
         const auth = getAuth();
         const db = getDatabase();
 
-        // Global variables
-        let currentUser = null;
-        let lastArticle = null;
-        const ARTICLES_PER_PAGE = 10;
-        let hasMoreArticles = true;
-        let isLoadingMore = false;
-
         // Get user ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const userId = urlParams.get('id');
@@ -539,12 +741,318 @@
 
         // Initialize auth state
         onAuthStateChanged(auth, (user) => {
-            currentUser = user;
+            if (user) {
             loadUserProfile();
-            if (user && user.uid !== userId) {
+                if (user.uid !== userId) {
                 recordProfileView();
             }
+            }
         });
+
+        async function loadUserProfile() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            try {
+                // Get user ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const userId = urlParams.get('id');
+
+                if (!userId) {
+                    window.location.href = 'users.html';
+                    return;
+                }
+
+                // Get user document
+                const userRef = ref(db, 'users/' + userId);
+                const userSnapshot = await get(userRef);
+                
+                if (!userSnapshot.exists()) {
+                    showError('User not found');
+                    window.location.href = 'users.html';
+                    return;
+                }
+
+                const userData = userSnapshot.val();
+
+                // Helper function to update element text content
+                function updateElement(id, value) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = value;
+                    }
+                }
+
+                // Helper function to update element display
+                function updateDisplay(id, display) {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.display = display;
+                    }
+                }
+
+                // Update profile info
+                updateElement('profileName', userData.displayName, 'Anonymous');
+                updateElement('profileUsername', `@${userData.username || 'anonymous'}`);
+                updateElement('profileBio', userData.bio, 'No bio available');
+
+                const profileAvatar = document.getElementById('profileAvatar');
+                if (profileAvatar) {
+                    profileAvatar.src = userData.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`;
+                }
+
+                // Update location if available and allowed by privacy settings
+                if (userData.location && (!userData.privacy || userData.privacy.showLocation)) {
+                    updateElement('location', userData.location);
+                    updateDisplay('locationContainer', 'flex');
+                }
+
+                // Update occupation if available
+                if (userData.occupation) {
+                    updateElement('occupation', userData.occupation);
+                    updateDisplay('occupationContainer', 'flex');
+                }
+
+                // Update website if available
+                if (userData.website) {
+                    const websiteElement = document.getElementById('website');
+                    if (websiteElement) {
+                        websiteElement.href = userData.website;
+                        websiteElement.textContent = new URL(userData.website).hostname;
+                        updateDisplay('websiteContainer', 'flex');
+                    }
+                }
+
+                // Update email if allowed by privacy settings
+                if (userData.email && (!userData.privacy || userData.privacy.showEmail)) {
+                    updateElement('email', userData.email);
+                    updateDisplay('emailContainer', 'flex');
+                }
+                
+                // Show verification badge if applicable
+                if (userData.verified) {
+                    updateDisplay('verifiedBadge', 'inline');
+                }
+
+                // Update interests
+                if (userData.interests && userData.interests.length > 0) {
+                    const interestsList = document.getElementById('interestsList');
+                    if (interestsList) {
+                        interestsList.innerHTML = userData.interests
+                            .map(interest => `<span class="interest-tag">${interest}</span>`)
+                            .join('');
+                        updateDisplay('interestsSection', 'block');
+                    }
+                }
+
+                // Update social links
+                if (userData.social) {
+                    const socialLinks = document.getElementById('socialLinks');
+                    if (socialLinks) {
+                    const socialHTML = [];
+                    
+                        if (userData.social.instagram) {
+                        socialHTML.push(`
+                                <a href="https://instagram.com/${userData.social.instagram}" target="_blank" class="social-link">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        `);
+                    }
+                    
+                        if (userData.social.twitter) {
+                        socialHTML.push(`
+                                <a href="https://twitter.com/${userData.social.twitter}" target="_blank" class="social-link">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                        `);
+                    }
+                    
+                        if (userData.social.linkedin) {
+                        socialHTML.push(`
+                                <a href="https://linkedin.com/in/${userData.social.linkedin}" target="_blank" class="social-link">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                        `);
+                    }
+                    
+                        if (userData.social.github) {
+                        socialHTML.push(`
+                                <a href="https://github.com/${userData.social.github}" target="_blank" class="social-link">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        `);
+                    }
+                    
+                    if (socialHTML.length > 0) {
+                            socialLinks.innerHTML = socialHTML.join('');
+                            updateDisplay('connectSection', 'block');
+                        }
+                    }
+                }
+
+                // Update profile meta
+                updateElement('postsCount', userData.posts || 0);
+                updateElement('followersCount', Object.keys(userData.followers || {}).length);
+                updateElement('followingCount', Object.keys(userData.following || {}).length);
+                updateElement('totalLikes', userData.totalLikes || 0);
+                updateElement('totalViews', userData.totalViews || 0);
+
+                // Load user level and experience
+                const level = userData.level || 1;
+                const experience = userData.experience || 0;
+                const maxXp = level * 1000; // Each level requires level * 1000 XP
+                
+                const levelTitle = document.querySelector('.level-title');
+                if (levelTitle) {
+                    levelTitle.textContent = `Level ${level}`;
+                }
+
+                const levelBadge = document.querySelector('.level-badge');
+                if (levelBadge) {
+                    levelBadge.innerHTML = `
+                        <i class="fas fa-crown" style="color: gold;"></i>
+                        ${level >= 10 ? 'Master Blogger' : level >= 5 ? 'Expert Blogger' : 'Beginner Blogger'}
+                    `;
+                }
+                
+                const progressBar = document.querySelector('.progress-bar');
+                if (progressBar) {
+                    const progressPercentage = (experience % maxXp) / maxXp * 100;
+                    progressBar.style.width = `${progressPercentage}%`;
+                }
+                
+                const levelStats = document.querySelector('.level-stats');
+                if (levelStats) {
+                    levelStats.innerHTML = `
+                        <span>${experience % maxXp} / ${maxXp} XP</span>
+                        <span>Next Level: ${level + 1}</span>
+                    `;
+                }
+
+                // Load achievements
+                const achievementsGrid = document.querySelector('.achievements-grid');
+                if (achievementsGrid) {
+                    achievementsGrid.innerHTML = '';
+                    
+                    const achievements = [
+                        {
+                            id: 'first_post',
+                            title: 'First Steps',
+                            description: 'Published your first post',
+                            icon: 'fas fa-pen-fancy',
+                            current: userData.posts || 0,
+                            required: 1
+                        },
+                        {
+                            id: 'posts_10',
+                            title: 'Prolific Writer',
+                            description: 'Published 10 posts',
+                            icon: 'fas fa-book',
+                            current: userData.posts || 0,
+                            required: 10
+                        },
+                        {
+                            id: 'level_5',
+                            title: 'Rising Star',
+                            description: 'Reached Level 5',
+                            icon: 'fas fa-star',
+                            current: level || 1,
+                            required: 5
+                        },
+                        {
+                            id: 'level_10',
+                            title: 'Master Writer',
+                            description: 'Reached Level 10',
+                            icon: 'fas fa-crown',
+                            current: level || 1,
+                            required: 10
+                        }
+                    ];
+
+                    let unlockedCount = 0;
+                    achievements.forEach(achievement => {
+                        const progress = (achievement.current / achievement.required) * 100;
+                        if (progress >= 100) unlockedCount++;
+                        
+                        achievementsGrid.innerHTML += `
+                            <div class="achievement-card">
+                                <div class="achievement-icon">
+                                    <i class="${achievement.icon}"></i>
+                                </div>
+                                <h3 class="achievement-title">${achievement.title}</h3>
+                                <p class="achievement-description">${achievement.description}</p>
+                                <div class="achievement-progress">
+                                    ${progress >= 100 ? 'Completed!' : 
+                                    `${achievement.current}/${achievement.required}`}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Update achievements count
+                    const achievementsHeader = document.querySelector('.achievements-header span');
+                    if (achievementsHeader) {
+                        achievementsHeader.textContent = `${unlockedCount}/${achievements.length} Unlocked`;
+                    }
+                }
+
+                // Load user's posts
+                const postsRef = ref(db, 'posts');
+                const postsSnapshot = await get(postsRef);
+                const postsGrid = document.querySelector('.posts-grid');
+                
+                if (postsSnapshot.exists() && postsGrid) {
+                    postsGrid.innerHTML = '';
+                    const posts = [];
+                    
+                    postsSnapshot.forEach((post) => {
+                        const postData = post.val();
+                        if (postData.data && postData.data.author === userId) {
+                            posts.push({ 
+                                id: post.key,
+                                ...postData.data
+                            });
+                        }
+                    });
+
+                    if (posts.length > 0) {
+                        // Sort posts by timestamp
+                        posts.sort((a, b) => b.timestamp - a.timestamp);
+
+                        posts.forEach(post => {
+                            postsGrid.innerHTML += `
+                                <div class="post-card" onclick="window.location.href='read.html?id=${post.id}'">
+                                    <img src="${post.thumbnail || `https://picsum.photos/seed/${post.id}/600/400`}" alt="Post thumbnail" class="card-image">
+                                    <div class="card-content">
+                                        <h3 class="card-title">${post.title || 'Untitled'}</h3>
+                                        <p class="card-description">${post.plainText?.substring(0, 100) || 'No content available'}...</p>
+                                        <div class="card-meta">
+                                            <span>${new Date(post.timestamp || Date.now()).toLocaleDateString()}</span>
+                                            <div class="stats-row">
+                                                <span><i class="far fa-eye"></i> ${post.views || 0}</span>
+                                                <span><i class="far fa-heart"></i> ${post.likes || 0}</span>
+                                                <span><i class="far fa-comment"></i> ${post.comments?.length || 0}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        postsGrid.innerHTML = `
+                            <div style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #666;">
+                                No posts yet
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showError('Failed to load user profile');
+            } finally {
+                if (loadingOverlay) {
+                    loadingOverlay.style.display = 'none';
+                }
+            }
+        }
 
         async function recordProfileView() {
             try {
@@ -554,406 +1062,29 @@
                 if (!userSnapshot.exists()) return;
 
                 const userData = userSnapshot.val();
-                const profilePictures = userData.profilePictures || [];
+                const profileViews = userData.profileViews || [];
                 
                 // Check if user has viewed in last 24 hours
-                const lastView = profilePictures.find(pic => 
-                    pic.timestamp && 
-                    new Date(pic.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
+                const lastView = profileViews.find(view => 
+                    view.timestamp && 
+                    new Date(view.timestamp) > new Date(Date.now() - 24 * 60 * 60 * 1000)
                 );
 
                 if (!lastView) {
+                    const currentUser = auth.currentUser;
                     await update(userRef, {
-                        profilePictures: {
-                            url: currentUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`,
-                            timestamp: new Date().toISOString(),
-                            viewerId: currentUser.uid,
-                            viewerName: currentUser.displayName || 'Anonymous'
-                        }
+                        profileViews: [
+                            ...profileViews,
+                            {
+                                viewerId: currentUser.uid,
+                                viewerName: currentUser.displayName || 'Anonymous',
+                                timestamp: new Date().toISOString()
+                            }
+                        ]
                     });
                 }
             } catch (error) {
                 console.error('Error recording profile view:', error);
-            }
-        }
-
-        async function loadUserProfile() {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            try {
-                // Get user document
-                const userRef = ref(db, 'users/' + userId);
-                const userSnapshot = await get(userRef);
-                if (!userSnapshot.exists()) {
-                    showError('User not found');
-                    window.location.href = 'users.html';
-                    return;
-                }
-
-                const userData = userSnapshot.val();
-
-                // Update page title
-                document.title = `${userData.displayName || 'Anonymous'} - StormBlogs`;
-
-                // Update profile information
-                const profileElements = {
-                    name: document.getElementById('profileName'),
-                    bio: document.getElementById('profileBio'),
-                    avatar: document.getElementById('profileAvatar'),
-                    username: document.getElementById('profileUsername'),
-                    location: document.getElementById('location'),
-                    locationContainer: document.getElementById('locationContainer'),
-                    occupation: document.getElementById('occupation'),
-                    occupationContainer: document.getElementById('occupationContainer'),
-                    website: document.getElementById('website'),
-                    websiteContainer: document.getElementById('websiteContainer'),
-                    email: document.getElementById('email'),
-                    emailContainer: document.getElementById('emailContainer'),
-                    interests: document.getElementById('interestsList'),
-                    interestsSection: document.getElementById('interestsSection'),
-                    socialLinks: document.getElementById('socialLinks'),
-                    connectSection: document.getElementById('connectSection')
-                };
-
-                // Update basic info
-                if (profileElements.name) profileElements.name.textContent = userData.displayName || 'Anonymous';
-                if (profileElements.bio) profileElements.bio.textContent = userData.bio || 'No bio available';
-                if (profileElements.avatar) profileElements.avatar.src = userData.avatarUrl || 
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`;
-                if (profileElements.username) profileElements.username.textContent = `@${userData.username}`;
-
-                // Update location based on privacy settings
-                if (userData.location && (!userData.privacy || userData.privacy.showLocation)) {
-                    profileElements.location.textContent = userData.location;
-                    profileElements.locationContainer.style.display = 'flex';
-                }
-
-                // Update occupation if available
-                if (userData.occupation) {
-                    profileElements.occupation.textContent = userData.occupation;
-                    profileElements.occupationContainer.style.display = 'flex';
-                }
-
-                // Update website if available
-                if (userData.website) {
-                    profileElements.website.href = userData.website;
-                    profileElements.website.textContent = new URL(userData.website).hostname;
-                    profileElements.websiteContainer.style.display = 'flex';
-                }
-
-                // Update email based on privacy settings
-                if (userData.email && (!userData.privacy || userData.privacy.showEmail)) {
-                    profileElements.email.textContent = userData.email;
-                    profileElements.emailContainer.style.display = 'flex';
-                }
-                
-                // Show badges if applicable
-                if (userData.verified) {
-                    document.getElementById('verifiedBadge').style.display = 'inline';
-                }
-
-                // Update interests
-                if (userData.interests && userData.interests.length > 0) {
-                    const interestsHTML = userData.interests.map(interest => 
-                        `<span class="interest-tag">${interest}</span>`
-                    ).join('');
-                    profileElements.interests.innerHTML = interestsHTML;
-                    profileElements.interestsSection.style.display = 'block';
-                }
-
-                // Update social links
-                if (userData.social) {
-                    const socialHTML = [];
-                    const { instagram, twitter, linkedin, github } = userData.social;
-                    
-                    if (instagram) {
-                        socialHTML.push(`
-                            <a href="https://instagram.com/${instagram}" target="_blank" class="social-link" title="Instagram">
-                                <i class="fab fa-instagram"></i>
-                            </a>
-                        `);
-                    }
-                    
-                    if (twitter) {
-                        socialHTML.push(`
-                            <a href="https://twitter.com/${twitter}" target="_blank" class="social-link" title="Twitter">
-                                <i class="fab fa-twitter"></i>
-                            </a>
-                        `);
-                    }
-                    
-                    if (linkedin) {
-                        socialHTML.push(`
-                            <a href="https://linkedin.com/in/${linkedin}" target="_blank" class="social-link" title="LinkedIn">
-                                <i class="fab fa-linkedin"></i>
-                            </a>
-                        `);
-                    }
-                    
-                    if (github) {
-                        socialHTML.push(`
-                            <a href="https://github.com/${github}" target="_blank" class="social-link" title="GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
-                        `);
-                    }
-                    
-                    if (socialHTML.length > 0) {
-                        profileElements.socialLinks.innerHTML = socialHTML.join('');
-                        profileElements.connectSection.style.display = 'block';
-                    }
-                }
-
-                // Update stats
-                document.getElementById('postsCount').textContent = userData.posts || 0;
-                document.getElementById('followersCount').textContent = userData.followers?.length || 0;
-                document.getElementById('followingCount').textContent = userData.following?.length || 0;
-                document.getElementById('totalLikes').textContent = userData.likes?.length || 0;
-                document.getElementById('totalViews').textContent = userData.totalViews || 0;
-
-                // Load initial articles
-                await loadArticles();
-
-                // Add infinite scroll for articles
-                window.addEventListener('scroll', handleScroll);
-
-                // Load user stats
-                await loadUserStats(userData);
-
-                // Hide loading overlay
-                loadingOverlay.style.display = 'none';
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                showError('Failed to load user profile');
-                loadingOverlay.style.display = 'none';
-            }
-        }
-
-        async function loadArticles(loadMore = false) {
-            if (isLoadingMore || (!loadMore && !hasMoreArticles)) return;
-
-            isLoadingMore = true;
-            try {
-                let articlesQuery;
-                
-                // First try to get posts without ordering to check if user has any
-                const basicQuery = ref(db, 'posts');
-                
-                const checkSnapshot = await get(basicQuery);
-                
-                if (checkSnapshot.empty) {
-                    // User has no posts
-                    const articlesContainer = document.getElementById('articlesContainer');
-                    articlesContainer.innerHTML = `
-                        <div style="text-align: center; padding: 2rem;">
-                            <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                            <p style="color: #666;">No articles yet</p>
-                        </div>
-                    `;
-                    hasMoreArticles = false;
-                    isLoadingMore = false;
-                    return;
-                }
-
-                // If user has posts, proceed with ordered query
-                articlesQuery = ref(db, 'posts');
-
-                if (loadMore && lastArticle) {
-                    articlesQuery = ref(db, 'posts/' + lastArticle);
-                }
-
-                const articlesSnapshot = await get(articlesQuery);
-                
-                if (articlesSnapshot.empty) {
-                    hasMoreArticles = false;
-                    if (!loadMore) {
-                        document.getElementById('articlesContainer').innerHTML = `
-                            <div style="text-align: center; padding: 2rem;">
-                                <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                                <p style="color: #666;">No articles yet</p>
-                            </div>
-                        `;
-                    }
-                    return;
-                }
-
-                lastArticle = articlesSnapshot.key;
-                hasMoreArticles = articlesSnapshot.size === ARTICLES_PER_PAGE;
-
-                const articlesContainer = document.getElementById('articlesContainer');
-                if (!loadMore) {
-                    articlesContainer.innerHTML = '';
-                }
-
-                articlesSnapshot.forEach(doc => {
-                    const article = doc.val();
-                    
-                    // Calculate stats
-                    const views = article.viewHistory?.length || 0;
-                    const likes = article.likes?.length || 0;
-                    const comments = article.comments?.length || 0;
-
-                    // Create article card
-                    const content = article.content || '';
-                    const plainText = content.replace(/<[^>]*>/g, '');
-                    const excerpt = plainText.substring(0, 150) + '...';
-
-                    const articleCard = document.createElement('div');
-                    articleCard.className = 'article-card';
-                    articleCard.onclick = () => window.location.href = `read.html?id=${doc.key}`;
-                    articleCard.innerHTML = `
-                        <h3 class="article-title">${article.title}</h3>
-                        <p class="article-excerpt">${excerpt}</p>
-                        <div class="article-meta">
-                            <span class="meta-item">
-                                <i class="fas fa-eye"></i> ${views}
-                            </span>
-                            <span class="meta-item">
-                                <i class="fas fa-heart"></i> ${likes}
-                            </span>
-                            <span class="meta-item">
-                                <i class="fas fa-comment"></i> ${comments}
-                            </span>
-                            <span class="meta-item">
-                                <i class="fas fa-clock"></i> ${article.readTime || 0} min read
-                            </span>
-                            <span class="meta-item">
-                                <i class="fas fa-calendar"></i> 
-                                ${article.timestamp?.toDate().toLocaleDateString()}
-                            </span>
-                        </div>
-                    `;
-
-                    articlesContainer.appendChild(articleCard);
-                });
-
-            } catch (error) {
-                if (error.code === 'failed-precondition' || error.message.includes('requires an index')) {
-                    // Use basic query results if index missing
-                    checkSnapshot.forEach(doc => {
-                        const article = doc.val();
-                        // Create and append article card
-                    });
-                }
-                console.error('Error loading articles:', error);
-                const articlesContainer = document.getElementById('articlesContainer');
-                
-                // Check if the error is about missing index
-                if (error.code === 'failed-precondition' || error.message.includes('requires an index')) {
-                    articlesContainer.innerHTML = `
-                        <div style="text-align: center; padding: 2rem;">
-                            <i class="fas fa-file-alt" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
-                            <p style="color: #666;">No articles yet</p>
-                        </div>
-                    `;
-                } else {
-                    articlesContainer.innerHTML = `
-                        <div style="text-align: center; padding: 2rem;">
-                            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;"></i>
-                            <p style="color: #666;">Error loading articles. Please try again later.</p>
-                        </div>
-                    `;
-                }
-            } finally {
-                isLoadingMore = false;
-            }
-        }
-
-        async function loadUserStats(userData) {
-            try {
-                // Get all user's articles for comprehensive stats
-                const articlesQuery = ref(db, 'posts');
-                const articlesSnapshot = await get(articlesQuery);
-                
-                // Initialize stats
-                const stats = {
-                    totalPosts: userData.posts || 0,
-                    totalFollowers: userData.followers?.length || 0,
-                    totalFollowing: userData.following?.length || 0,
-                    totalLikes: userData.likes?.length || 0
-                };
-
-                // Initialize activity data for the last 7 days
-                const activityData = new Array(7).fill(0);
-                const today = new Date();
-
-                // Process articles for activity data
-                articlesSnapshot.forEach(doc => {
-                    const article = doc.val();
-                    
-                    // Track activity by date
-                    if (article.createdAt) {
-                        const articleDate = article.createdAt.toDate();
-                        const dayDiff = Math.floor((today - articleDate) / (1000 * 60 * 60 * 24));
-                        if (dayDiff < 7) {
-                            activityData[dayDiff]++;
-                        }
-                    }
-                });
-
-                // Create activity chart
-                const ctx = document.getElementById('activityChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: 7}, (_, i) => {
-                            const d = new Date();
-                            d.setDate(d.getDate() - i);
-                            return d.toLocaleDateString('en-US', { weekday: 'short' });
-                        }).reverse(),
-                        datasets: [{
-                            label: 'Posts',
-                            data: activityData.reverse(),
-                            borderColor: '#1a73e8',
-                            backgroundColor: 'rgba(26, 115, 232, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `Posts: ${context.raw}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 1
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        }
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error loading user stats:', error);
-                showError('Failed to load user statistics');
-            }
-        }
-
-        function handleScroll() {
-            if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-                if (hasMoreArticles && !isLoadingMore) {
-                    loadArticles(true);
-                }
             }
         }
 
